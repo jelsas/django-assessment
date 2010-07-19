@@ -98,12 +98,6 @@ class QueryDocumentPair(models.Model):
   left_doc = models.CharField('left document', max_length=100)
   right_doc = models.CharField('right document', max_length=100)
 
-  def right_doc_url(self):
-    return settings.EXTERNAL_URL_PATTERN % self.right_doc
-
-  def left_doc_url(self):
-    return settings.EXTERNAL_URL_PATTERN % self.left_doc
-
   def qid(self):
     return self.query.qid
 
@@ -114,9 +108,9 @@ class PreferenceAssessment(models.Model):
   '''A judgement on a query-document pair.  Supported judgements are left, right
   (to indicate the left or right documents are better) or "both bad" to
   indicate both documents are not at all relevant.'''
-  PREFERENCE_CHOICES = ( ('L', 'Left'),
-                         ('B', 'Both Bad'),
-                         ('R', 'Right') )
+  # The choice values, and a swapped version for use in the form.
+  PREFERENCE_CHOICES =     ( ('L', 'Left'), ('B', 'Both Bad'), ('R', 'Right') )
+  REV_PREFERENCE_CHOICES = ( ('R', 'Left'), ('B', 'Both Bad'), ('L', 'Right') )
   assignment = models.ForeignKey(Assignment, related_name='assessments',
     # make sure we don't create any assessments for an assignment without an
     # info need description filled.
@@ -125,9 +119,31 @@ class PreferenceAssessment(models.Model):
     related_name='assessments')
   created_date = models.DateTimeField('creation date', editable=False)
   preference = models.CharField(max_length=1, choices=PREFERENCE_CHOICES)
+  # Indicates whether the documents should be swapped when displayed
+  swap_docs = models.BooleanField(default=False)#, editable=False)
 
   # To hold the "Other" preference reason
   preference_reason_other = models.CharField(max_length=500, blank=True)
+
+  def get_choices(self):
+    '''Returns the appropriate choices for a form given the value of
+    swap_docs.'''
+    if self.swap_docs: return self.REV_PREFERENCE_CHOICES
+    else: return self.PREFERENCE_CHOICES
+
+  def left_doc(self):
+    if self.swap_docs: return self.query_doc_pair.right_doc
+    else: return self.query_doc_pair.left_doc
+
+  def right_doc(self):
+    if self.swap_docs: return self.query_doc_pair.left_doc
+    else: return self.query_doc_pair.right_doc
+
+  def right_doc_url(self):
+    return settings.EXTERNAL_URL_PATTERN % self.right_doc()
+
+  def left_doc_url(self):
+    return settings.EXTERNAL_URL_PATTERN % self.left_doc()
 
   def save(self):
     '''Custom save method that handles automatically filling in the dates'''
@@ -148,11 +164,18 @@ class PreferenceAssessment(models.Model):
   def __unicode__(self):
     if self.preference == 'L': arrow = '>'
     elif self.preference == 'R': arrow = '<'
-    else: arrow = '<>'
-    #return '%s preference on [%s]: %s %s %s' % (self.assessor(), self.query(),
-    #        self.query_doc_pair.left_doc, arrow, self.query_doc_pair.right_doc)
-    return '%s %s %s' % \
-            (self.query_doc_pair.left_doc, arrow, self.query_doc_pair.right_doc)
+    elif self.preference == 'B': arrow = '<>'
+    else: arrow = '?'
+
+    try:
+      left, right = self.left_doc(), self.right_doc()
+    except QueryDocumentPair.DoesNotExist:
+      left, right = '???', '???'
+
+    if self.swap_docs: last = '*'
+    else: last = ''
+
+    return '%s %s %s %s' % (left, arrow, right, last)
 
 class PreferenceReason(models.Model):
   '''Options for selecting a preference assessment reason'''

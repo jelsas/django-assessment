@@ -10,13 +10,19 @@ class InformationNeedForm(forms.ModelForm):
     fields = ('description', 'narrative')
 
 class PreferenceAssessmentForm(forms.ModelForm):
-  preference = forms.ChoiceField(
-    choices = PreferenceAssessment.PREFERENCE_CHOICES,
-    label = 'Which document do you prefer?',
-    widget = forms.RadioSelect)
+  swap_docs = forms.BooleanField(required = False, widget = forms.HiddenInput)
+
+  def __init__(self, *args, **kwargs):
+    super(PreferenceAssessmentForm, self).__init__(*args, **kwargs)
+    # Dynamically add the 'preference' field to setup the choices
+    self.fields['preference'] = forms.ChoiceField(
+                        choices = self.instance.get_choices(),
+                        label = 'Which document do you prefer?',
+                        widget = forms.RadioSelect)
+
   class Meta:
     model = PreferenceAssessment
-    fields = ('preference',)
+    fields = ('preference', 'swap_docs')
 
 class PreferenceAssessmentReasonForm(forms.Form):
 
@@ -57,7 +63,6 @@ class PreferenceAssessmentReasonFormFactory(object):
                     checked_reasons = checked_reasons,
                     other = preference_assessment.preference_reason_other,
                     *args, **kwargs)
-
 
   def create(self, *args, **kwargs):
     return PreferenceAssessmentReasonForm(reasons = self.reasons(),

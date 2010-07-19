@@ -14,8 +14,10 @@ admin.site.register(Query,
   short_description = "Queries and Doc Pairs")
 
 admin.site.register(PreferenceAssessment,
+  # TODO: need to limit the query_doc_pair choices to only those corresponding
+  # to this assignment
   list_display = ('assignment', 'query_doc_pair', 'preference', 'reasons_str',
-                  'created_date'),
+                  'created_date', 'swap_docs'),
   inlines = [PreferenceAssessmentReasonInline])
 
 admin.site.register(Assignment,

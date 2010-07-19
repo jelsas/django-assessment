@@ -7,6 +7,7 @@ from django.shortcuts import render_to_response, \
 from django.contrib.auth.decorators import login_required
 from django.template import RequestContext
 from django.db.models import Sum
+from random import randint
 
 pref_assessment_form_factory = PreferenceAssessmentReasonFormFactory()
 
@@ -14,6 +15,8 @@ def redirect_to_pagename(request, pagename):
   return HttpResponseRedirect(reverse(pagename))
 
 class GlobalAssessmentStatus(object):
+  '''Helper class to handle progress reporting'''
+  #TODO: break this out into its own module?
   def current_assignments(self):
     return Assignment.objects.count()
 
@@ -63,9 +66,6 @@ class GlobalAssessmentStatus(object):
         (complete_scaled, assigned_incomplete_scaled, unassigned_scaled)
     else:
       return '0|0|0'
-
-
-
 
 @login_required
 def assessor_dashboard(request):
@@ -176,7 +176,7 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
   query_doc_pair = get_object_or_404(QueryDocumentPair, pk=querydocumentpair_id)
   if query_doc_pair.query != assignment.query:
     return render_to_response('assessment/access_error.html',
-      {'message': 'Queries don\t match (%s != %s)' % \
+      {'message': 'Queries don\'t match (%s != %s)' % \
                     (query_doc_pair.query, assignment.query) },
       RequestContext(request))
 
@@ -189,7 +189,8 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
         assignment = assignment,
         query_doc_pair = query_doc_pair,
         preference = form.cleaned_data['preference'],
-        preference_reason_other = reason_form.cleaned_data['other'])
+        preference_reason_other = reason_form.cleaned_data['other'],
+        swap_docs = form.cleaned_data['swap_docs'])
       assessment.save()
 
       # create possibly many preference reasons
@@ -207,9 +208,12 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
                                             args=[assessment.id]))
       elif '_complete' in request.POST:
         return HttpResponseRedirect(reverse('dashboard'))
-  else:
-    form = PreferenceAssessmentForm()
-    reason_form = pref_assessment_form_factory.create()
+
+  assessment = PreferenceAssessment(
+    query_doc_pair = query_doc_pair,
+    swap_docs = settings.RANDOMIZE_DOC_PRESENTATION and randint(0,1)==1)
+  form = PreferenceAssessmentForm(instance = assessment)
+  reason_form = pref_assessment_form_factory.create()
 
   submit_options = [('Submit', '_save')]
   if assignment.num_assessments_pending() > 1:
@@ -218,7 +222,8 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
     submit_options.append( ('Submit & Return to Dashboard', '_complete') )
 
   return render_to_response('assessment/assessment_detail.html',
-    {'assignment': assignment, 'query_doc_pair': query_doc_pair,
+    {'assignment': assignment,
+      'assessment': assessment,
       'form': form, 'reason_form': reason_form,
       'submit_options': submit_options},
     RequestContext(request))
@@ -264,20 +269,18 @@ def assessment_detail(request, assessment_id):
         return HttpResponseRedirect(reverse('assessment_detail',
                                             args=[assessment.id]))
 
-  else:
-    form = PreferenceAssessmentForm({'preference': assessment.preference })
-    reason_form = \
-      pref_assessment_form_factory.create_from_assessment(assessment)
+  form = PreferenceAssessmentForm(instance = assessment)
+  reason_form = pref_assessment_form_factory.create_from_assessment(assessment)
 
   submit_options = [('Submit', '_save')]
   if assessment.assignment.num_assessments_pending() > 0:
     submit_options.append( ('Submit & Assess More', '_continue') )
 
   return render_to_response('assessment/assessment_detail.html',
-    {'form': form, 'reason_form': reason_form, 'assessment': assessment,
+    {'form': form, 'reason_form': reason_form,
+      'assessment': assessment,
       'assignment': assessment.assignment,
-      'submit_options': submit_options,
-      'query_doc_pair': assessment.query_doc_pair },
+      'submit_options': submit_options},
     RequestContext(request))
 
 @login_required
