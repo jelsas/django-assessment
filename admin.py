@@ -23,6 +23,6 @@ admin.site.register(Assignment,
                   'elapsed_time'))
 
 admin.site.register(PreferenceReason,
-  list_display = ('short_name', 'description'))
+  list_display = ('short_name', 'description', 'active'))
 
 admin.site.register(Comment)

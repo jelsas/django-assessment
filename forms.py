@@ -44,21 +44,21 @@ class PreferenceAssessmentReasonForm(forms.Form):
 
 
 class PreferenceAssessmentReasonFormFactory(object):
-  def __init__(self):
-    # cache the reasons
-    self.reasons = {}
-    for r in PreferenceReason.objects.all():
-      self.reasons[r.id] = r.short_name
+  def reasons(self):
+    reasons = {}
+    for r in PreferenceReason.objects.filter(active=True):
+      reasons[r.id] = r.short_name
+    return reasons
 
   def create_from_assessment(self, preference_assessment, *args, **kwargs):
     checked_reasons = set(r.reason.id for r in \
                           preference_assessment.reasons.all())
-    return PreferenceAssessmentReasonForm(reasons = self.reasons,
+    return PreferenceAssessmentReasonForm(reasons = self.reasons(),
                     checked_reasons = checked_reasons,
                     other = preference_assessment.preference_reason_other,
                     *args, **kwargs)
 
 
   def create(self, *args, **kwargs):
-    return PreferenceAssessmentReasonForm(reasons = self.reasons,
+    return PreferenceAssessmentReasonForm(reasons = self.reasons(),
                                           *args, **kwargs)

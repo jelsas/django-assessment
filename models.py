@@ -158,6 +158,7 @@ class PreferenceReason(models.Model):
   '''Options for selecting a preference assessment reason'''
   short_name = models.CharField(max_length=100)
   description = models.CharField(max_length=500)
+  active = models.BooleanField(default=True)
 
   def __unicode__(self):
     return self.short_name
