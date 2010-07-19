@@ -1,0 +1,7 @@
+Django-Assessment
+=================
+
+django-assessment is a django app for collecting pairwise-preference relevance
+assessment for the purposes of building an information retrieval test
+collection.
+
