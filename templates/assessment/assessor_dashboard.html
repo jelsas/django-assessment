@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Welcome {{ user }}</h1>
+
+{# CURRENT ASSIGNMENTS #}
+{% if assignments|length > 0 %}
+  <h2>Current Assignments:</h2>
+  <table class="info">
+  <thead>
+    <td>Query</td>
+    <td>Assigned On</td>
+    <td>Status</td>
+  </thead>
+
+  {% for a in assignments %}
+    <tr>
+    <td> [{{ a.query.text }}] </td>
+    <td> {{ a.created_date }} </td>
+    <td> <a href="{% url assignment_detail a.id %}">{{ a.status }}</a> </td>
+  {% endfor %}
+  </table>
+{% else %}
+  <h2>No assignments yet.  Please select a new query below.</h2>
+{% endif %}
+
+{# START A NEW QUERY #}
+{% if available_queries|length > 0 %}
+<h2>Available Assignments:</h2>
+<table class="info">
+<thead>
+  <td>Query</td>
+</thead>
+{% for q in available_queries.all %}
+  <tr>
+  <td><a href="{% url select_query_confirm q.id %}">[{{ q.text }}]</a></td>
+  </td>
+{% endfor %}
+</table>
+{% endif %}
+
+
+{# SEND FEEDBACK #}
+<h2>Comments?</h2>
+<p>Feel free to leave us any comments about the assessment task:
+<form action="{% url comment %}" method="post">
+{{ comment_form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+
+{% if user.is_superuser %}
+<h2>Assessment Status:</h2>
+<table>
+<th>Assignment Progress:</th>
+  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assignment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
+<tr><th>Current Assignments:</th>
+  <td>{{ status.current_assignments }}</td></tr>
+<tr><th>Complete Assignments:</th>
+  <td>{{ status.complete_assignments }}</td></tr>
+<tr><th>Pending Assignments:</th>
+  <td>{{ status.pending_assignments }}</td></tr>
+<th>Assessment Progress:</th>
+  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assessment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
+<tr><th>Complete Assessments:</th>
+  <td>{{ status.complete_assessments }}</td></tr>
+<tr><th>Pending Assessments (Assigned):</th>
+  <td>{{ status.pending_assessments_assigned }}</td></tr>
+<tr><th>Pending Assessments (Unassigned):</th>
+  <td>{{ status.pending_assessments_unassigned }}</td></tr>
+{% endif %}
+
+{% endblock %}
+

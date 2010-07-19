@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block current_navelement %}
+<div class="navelement">Information Need for [{{assignment.query.text}}]</div>
+{% endblock %}
+
+{% block content %}
+
+<h1>Information need for query [{{assignment.query.text}}] assigned to {{assignment.assessor}}.</h1>
+
+<form action="." method="post">
+{{ form.as_p }}
+<input type="hidden" name="next" value="{{ next }}" />
+<input type="submit" value="Submit" />
+</form>
+
+{% endblock %}
+

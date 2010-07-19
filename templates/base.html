@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+    <style>
+      body { font-family: Palatino, Times, serif;  }
+      table {
+        width: 100%; }
+      table iframe {
+        width: 100%;
+        height: 350px;}
+      div.inline {
+        width: 100%;
+        line-height:32px; }
+      div.inline p {
+        display: inline;
+        margin-right: 40px;
+        white-space:nowrap; }
+      div.inline p:first-child, div.inline ul + p {
+        font-weight: bold; }
+      div.inline ul {
+        margin: 0;
+        padding: 0;
+        display: inline;
+        list-style-type: none; }
+      div.inline ul li {
+        white-space:nowrap;
+        margin-right: 40px;
+        display: inline; }
+      div.note {
+        font-size: 90%;
+        background: #f0f0f0; }
+    </style>
+    <title>{% block title %}Assessment Interface{% endblock %}</title>
+</head>
+
+<body>
+    <div id="navigation">
+        {% block navigation %}
+        {% if user and user.is_authenticated %}
+        <div class="navelement"><strong>{{ user }}</strong></div>
+        {% block current_navelement %}{% endblock %}
+        <div class="navelement"><a href="{% url dashboard %}">
+          Assessor Dashboard</a></div>
+        <div class="navelement"><a href="{% url django.contrib.auth.views.logout %}">Logout</a></div>
+        {% else %}
+        <div class="navelement"><a href="{% url django.contrib.auth.views.login %}">Login</a></div>
+        {% endif %}
+        {% endblock %}
+    </div>
+
+    <div id="content">
+        {% block content %}{% endblock %}
+    </div>
+
+</body>
+</html>

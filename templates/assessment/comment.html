@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% if message %}
+<h1>{{ message }}</h1>
+{% endif %}
+
+{% if form %}
+<h1>Please leave your comment below:</h1>
+<form action="." method="post">
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+{% endif %}
+
+{% endblock %}
+

@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>There was a problem with your request:</h1>
+<p>message: {{message}}</p>
+
+<p><a href="{% url dashboard %}">Return to the dashboard</a></p>
+
+{% endblock %}
+

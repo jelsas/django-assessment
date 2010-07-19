@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block current_navelement %}
+<div class="navelement">
+<a href="{% url assignment_detail assignment.id %}">[{{assignment.query.text}}] assessment: {{ assignment.status }}</a></div>
+{% endblock %}
+
+{% block content %}
+
+<h1>Assessment for [{{assignment.query.text}}]</h1>
+<div class="note">
+<p><strong>Information need statement</strong>:
+(<a href="{% url information_need assignment.id %}?next={{ request.path }}">update</a>)</p>
+<p>{{ assignment.description }}</p>
+<p>{{ assignment.narrative }}</p>
+</div>
+
+<form action="." method="post">
+<div class="inline">
+{{ form.as_p }}
+</div>
+<div class="inline">
+<p><strong>Why?</strong></p>
+{{ reason_form.as_p }}
+</div>
+{% for value, name in submit_options %}
+<input type="submit" value="{{ value }}" name="{{ name }}"/>
+{% endfor %}
+</form>
+
+<table class="info">
+<tr><th>Left Document ({{ assessment.presented_left_doc}}) </th>
+        <th>Right Document ({{ assessment.presented_right_doc}}) </th></tr>
+<tr><td>
+<iframe class="left"
+  src="{{ assessment.presented_left_doc_url }}">
+  Your browser doesn't support iframes.
+</iframe>
+</td>
+<td>
+<iframe class="right"
+  src="{{ assessment.presented_right_doc_url }}">
+  Your browser doesn't support iframes.
+</iframe>
+</td></tr>
+</table>
+
+{% endblock %}
+
