@@ -132,18 +132,30 @@ class PreferenceAssessment(models.Model):
     else: return self.PREFERENCE_CHOICES
 
   def left_doc(self):
+    '''Returns the (true) left document'''
+    return self.query_doc_pair.left_doc
+
+  def right_doc(self):
+    '''Returns the (true) right document'''
+    return self.query_doc_pair.right_doc
+
+  def presented_left_doc(self):
+    '''Returns the (possibly swapped) left document'''
     if self.swap_docs: return self.query_doc_pair.right_doc
     else: return self.query_doc_pair.left_doc
 
-  def right_doc(self):
+  def presented_right_doc(self):
+    '''Returns the (possibly swapped) right document'''
     if self.swap_docs: return self.query_doc_pair.left_doc
     else: return self.query_doc_pair.right_doc
 
-  def right_doc_url(self):
-    return settings.EXTERNAL_URL_PATTERN % self.right_doc()
-
-  def left_doc_url(self):
+  def presented_left_doc_url(self):
+    '''Returns the (possibly swapped) left document URL'''
     return settings.EXTERNAL_URL_PATTERN % self.left_doc()
+
+  def presented_right_doc_url(self):
+    '''Returns the (possibly swapped) right document URL'''
+    return settings.EXTERNAL_URL_PATTERN % self.right_doc()
 
   def save(self):
     '''Custom save method that handles automatically filling in the dates'''
@@ -162,20 +174,21 @@ class PreferenceAssessment(models.Model):
   reasons_str.short_description = "Reasons"
 
   def __unicode__(self):
-    if self.preference == 'L': arrow = '>'
-    elif self.preference == 'R': arrow = '<'
-    elif self.preference == 'B': arrow = '<>'
-    else: arrow = '?'
-
     try:
       left, right = self.left_doc(), self.right_doc()
     except QueryDocumentPair.DoesNotExist:
-      left, right = '???', '???'
+      return 'UNINITIALIZED'
 
-    if self.swap_docs: last = '*'
-    else: last = ''
+    if self.preference == 'L':
+      preferred, unpreferred = left, right
+    elif self.preference == 'R':
+      preferred, unpreferred = right, left
+    elif self.preference == 'B':
+      return '%s, %s both bad' % (left, right)
+    else:
+      return 'neither %s or %s' % (left, right)
 
-    return '%s %s %s %s' % (left, arrow, right, last)
+    return '%s preferred over %s' % (preferred, unpreferred)
 
 class PreferenceReason(models.Model):
   '''Options for selecting a preference assessment reason'''

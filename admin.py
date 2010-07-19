@@ -18,7 +18,8 @@ admin.site.register(PreferenceAssessment,
   # to this assignment
   list_display = ('assignment', 'query_doc_pair', 'preference', 'reasons_str',
                   'created_date', 'swap_docs'),
-  inlines = [PreferenceAssessmentReasonInline])
+  inlines = [PreferenceAssessmentReasonInline],
+  list_filter = ['assignment', 'created_date'])
 
 admin.site.register(Assignment,
   list_display = ('assessor', 'query', 'created_date', 'status',
