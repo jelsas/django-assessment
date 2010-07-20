@@ -1,5 +1,16 @@
 from django import forms
 from assessment.models import *
+from assessment import app_settings
+from registration.forms import RegistrationFormUniqueEmail
+
+class ValidKeyRegistrationForm(RegistrationFormUniqueEmail):
+  validation_key = forms.CharField()
+
+  def clean_validation_key(self):
+    if app_settings.VALIDATION_KEY is not None and \
+          self.cleaned_data['validation_key'] != app_settings.VALIDATION_KEY:
+        raise forms.ValidationError(_("Incorrect validation key."))
+    return self.cleaned_data['validation_key']
 
 class CommentForm(forms.Form):
   message = forms.CharField(widget=forms.Textarea(attrs={'rows':'4'}))

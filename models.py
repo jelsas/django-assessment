@@ -2,7 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
-from assessment import settings
+from assessment import app_settings
 
 class Query(models.Model):
   '''A Query'''
@@ -151,11 +151,11 @@ class PreferenceAssessment(models.Model):
 
   def presented_left_doc_url(self):
     '''Returns the (possibly swapped) left document URL'''
-    return settings.EXTERNAL_URL_PATTERN % self.left_doc()
+    return app_settings.EXTERNAL_URL_PATTERN % self.left_doc()
 
   def presented_right_doc_url(self):
     '''Returns the (possibly swapped) right document URL'''
-    return settings.EXTERNAL_URL_PATTERN % self.right_doc()
+    return app_settings.EXTERNAL_URL_PATTERN % self.right_doc()
 
   def save(self):
     '''Custom save method that handles automatically filling in the dates'''
