@@ -9,7 +9,7 @@ class ValidKeyRegistrationForm(RegistrationFormUniqueEmail):
   def clean_validation_key(self):
     if app_settings.VALIDATION_KEY is not None and \
           self.cleaned_data['validation_key'] != app_settings.VALIDATION_KEY:
-        raise forms.ValidationError(_("Incorrect validation key."))
+        raise forms.ValidationError(("Incorrect validation key."))
     return self.cleaned_data['validation_key']
 
 class CommentForm(forms.Form):
