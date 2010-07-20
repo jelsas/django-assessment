@@ -9,17 +9,21 @@
   <h2>Current Assignments:</h2>
   <table class="info">
   <thead>
-    <td>Query</td>
-    <td>Assigned On</td>
-    <td>Status</td>
+    <tr>
+      <th>Query</th>
+      <th>Assigned On</th>
+      <th>Status</th>
+    </tr>
   </thead>
-
+  <tbody>
   {% for a in assignments %}
     <tr>
     <td> [{{ a.query.text }}] </td>
     <td> {{ a.created_date }} </td>
     <td> <a href="{% url assignment_detail a.id %}">{{ a.status }}</a> </td>
+    </tr>
   {% endfor %}
+  </tbody>
   </table>
 {% else %}
   <h2>No assignments yet.  Please select a new query below.</h2>
@@ -30,13 +34,15 @@
 <h2>Available Assignments:</h2>
 <table class="info">
 <thead>
-  <td>Query</td>
+  <tr><th>Query</th></tr>
 </thead>
+<tbody>
 {% for q in available_queries.all %}
   <tr>
   <td><a href="{% url select_query_confirm q.id %}">[{{ q.text }}]</a></td>
-  </td>
+  </tr>
 {% endfor %}
+</tbody>
 </table>
 {% endif %}
 
@@ -52,7 +58,7 @@
 {% if user.is_superuser %}
 <h2>Assessment Status:</h2>
 <table>
-<th>Assignment Progress:</th>
+<tr><th>Assignment Progress:</th>
   <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assignment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
 <tr><th>Current Assignments:</th>
   <td>{{ status.current_assignments }}</td></tr>
@@ -60,7 +66,7 @@
   <td>{{ status.complete_assignments }}</td></tr>
 <tr><th>Pending Assignments:</th>
   <td>{{ status.pending_assignments }}</td></tr>
-<th>Assessment Progress:</th>
+<tr><th>Assessment Progress:</th>
   <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assessment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
 <tr><th>Complete Assessments:</th>
   <td>{{ status.complete_assessments }}</td></tr>
@@ -68,6 +74,7 @@
   <td>{{ status.pending_assessments_assigned }}</td></tr>
 <tr><th>Pending Assessments (Unassigned):</th>
   <td>{{ status.pending_assessments_unassigned }}</td></tr>
+</table>
 {% endif %}
 
 {% endblock %}
