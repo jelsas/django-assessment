@@ -10,6 +10,6 @@ RANDOMIZE_DOC_PRESENTATION = getattr(settings, 'RANDOMIZE_DOC_PRESENTATION',
                                      True)
 
 # Is a new registration required to provide a validation key?
-VALIDATION_KEY = getattr(settings, 'VALIDATION_KEY', None)
+REGISTRATION_KEY = getattr(settings, 'REGISTRATION_KEY', None)
 
 
