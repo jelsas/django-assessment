@@ -211,7 +211,7 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
 
   assessment = PreferenceAssessment(
     query_doc_pair = query_doc_pair,
-    swap_docs = settings.RANDOMIZE_DOC_PRESENTATION and randint(0,1)==1)
+    swap_docs = app_settings.RANDOMIZE_DOC_PRESENTATION and randint(0,1)==1)
   form = PreferenceAssessmentForm(instance = assessment)
   reason_form = pref_assessment_form_factory.create()
 
