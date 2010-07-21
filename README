@@ -5,3 +5,65 @@ django-assessment is a django app for collecting pairwise-preference relevance
 assessment for the purposes of building an information retrieval test
 collection.
 
+
+Dependencies
+============
+
+This app dependes on users being authenticated through Django's user
+authentication system.  This can be accomplished in several ways.  For
+examples on how to setup your server to handle this, see the Django
+documentation:
+http://docs.djangoproject.com/en/dev/topics/auth/
+and the excellent django-registration app:
+http://bitbucket.org/ubernostrum/django-registration/
+
+
+Application Settings
+====================
+
+These settings control the behavior of the assessment app and can be specified
+in your settings.py:
+
+DOCSERVER_URL_PATTERN - A URL with a single string format placeholder (%s)
+                        where documents can be served from.  The string
+                        placeholder will be replced by the document ID.
+                        Required.
+
+RANDOMIZE_DOC_PRESENTATION - A boolean indicating whether to randomize the
+                        presentation of left/right documents in the
+                        document-pairs.  Defaults to True.  Optional.
+
+REGISTRATION_KEY - A string specifying a code that must be entered in the
+                        registration form.  For use only when using
+                        django-registration with the ValidKeyRegistrationForm.
+                        Optional.  See below.
+
+
+Restricting Registrations
+=========================
+
+In order to restrict users who can register for an account, we can use
+the django-registration app and a Form provided by this app.  See above
+for instructions on downloading and installing django-registration.
+
+To restrict users who can register for an account, the URL pattern for
+'accounts/register/' must be overridden to use the ValidKeyRegistrationForm.
+This will add an additional "Registration key" field to the registration
+form.  In your site's urls.py, include the following:
+
+  from assessment.forms import ValidKeyRegistrationForm
+  from registration.views import register
+
+  urlpatterns = patterns('',
+      url(r'^accounts/register/$',
+         register,
+         {'backend': 'registration.backends.default.DefaultBackend',
+          'form_class': ValidKeyRegistrationForm},
+         name='registration_activate'),
+      ... # the rest of your URLs
+      )
+
+and set REGISTRATION_KEY in your settings.py to contain a key you may provide
+to users for use when they register for the site.  This key must be entered
+in the new registration form in order for the registration to be processed.
+

@@ -2,7 +2,7 @@ from django.conf import settings
 
 
 # A string format pattern with a placeholder (%s) for the document identifier
-EXTERNAL_URL_PATTERN = getattr(settings, 'EXTERNAL_URL_PATTERN',
+DOCSERVER_URL_PATTERN = getattr(settings, 'DOCSERVER_URL_PATTERN',
   'http://example.com/document_server.php?docid=%s')
 
 # Should the left & right documents be swapped randomly when presented?
