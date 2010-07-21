@@ -9,7 +9,7 @@ collection.
 Dependencies
 ============
 
-This app dependes on users being authenticated through Django's user
+This app depends on users being authenticated through Django's user
 authentication system.  This can be accomplished in several ways.  For
 examples on how to setup your server to handle this, see the Django
 documentation:
