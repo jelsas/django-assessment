@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Welcome {{ user }} -- Admin Dashboard</h1>
+
+<h2>Assessment Status:</h2>
+<table>
+<tr><th>Assignment Progress:</th>
+  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ assignment_progress.google_chart_argument }}" width="440" height="40" alt="" /></td></tr>
+<tr><th>Assigned / Complete / Total:</th>
+  <td>{{ assignment_progress.assigned }} / {{ assignment_progress.complete }} / {{ assignment_progress.total }}</td></tr>
+<tr><th>Assessment Progress:</th>
+  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ assessment_progress.google_chart_argument}}" width="440" height="40" alt="" /></td></tr>
+<tr><th>Assigned / Complete / Total:</th>
+  <td>{{ assessment_progress.assigned }} / {{ assessment_progress.complete }} / {{ assessment_progress.total }}</td></tr>
+</table>
+
+{% endblock %}
+

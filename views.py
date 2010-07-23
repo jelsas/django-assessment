@@ -1,71 +1,30 @@
 from assessment.models import *
 from assessment.forms import *
+from assessment.util import AssignmentProgress, AssessmentProgress
 from django.core.urlresolvers import reverse
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, \
                              get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext
-from django.db.models import Sum
 from random import randint
 
 pref_assessment_form_factory = PreferenceAssessmentReasonFormFactory()
+assessment_progress = AssessmentProgress()
+assignment_progress = AssignmentProgress()
 
 def redirect_to_pagename(request, pagename):
   return HttpResponseRedirect(reverse(pagename))
 
-class GlobalAssessmentStatus(object):
-  '''Helper class to handle progress reporting'''
-  #TODO: break this out into its own module?
-  def current_assignments(self):
-    return Assignment.objects.count()
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def admin_dashboard(request):
+  data = {'assessment_progress': assessment_progress,
+          'assignment_progress': assignment_progress}
 
-  def complete_assignments(self):
-    return sum( 1 for a in Assignment.objects.all() if a.complete() )
+  return render_to_response('assessment/admin_dashboard.html', data,
+   RequestContext(request))
 
-  def pending_assignments(self):
-    return Query.objects.aggregate(
-      Sum('remaining_assignments'))['remaining_assignments__sum']
-
-  def assignment_status_chart_arg(self):
-    complete = self.complete_assignments()
-    assigned_incomplete = self.current_assignments() - complete
-    unassigned = self.pending_assignments()
-    # scale to 100 max for all of them
-    total = complete + assigned_incomplete + unassigned
-    if total > 0:
-      complete_scaled = 100 * complete / total
-      assigned_incomplete_scaled = 100 * assigned_incomplete / total
-      unassigned_scaled = 100 * unassigned / total
-      return '%d|%d|%d' % \
-        (complete_scaled, assigned_incomplete_scaled, unassigned_scaled)
-    else:
-      return '0|0|100'
-
-  def complete_assessments(self):
-    return PreferenceAssessment.objects.count()
-
-  def pending_assessments_assigned(self):
-    return sum( a.num_assessments_pending() for a in Assignment.objects.all() )
-
-  def pending_assessments_unassigned(self):
-    return sum( (q.remaining_assignments * q.doc_pairs.count()) \
-      for q in Query.objects.filter(remaining_assignments__gt=0).all() )
-
-  def assessment_status_chart_arg(self):
-    complete = self.complete_assessments()
-    assigned_incomplete = self.pending_assessments_assigned()
-    unassigned = self.pending_assessments_unassigned()
-    # scale to 100 max for all of them
-    total = complete + assigned_incomplete + unassigned
-    if total > 0:
-      complete_scaled = 100 * complete / total
-      assigned_incomplete_scaled = 100 * assigned_incomplete / total
-      unassigned_scaled = 100 * unassigned / total
-      return '%d|%d|%d' % \
-        (complete_scaled, assigned_incomplete_scaled, unassigned_scaled)
-    else:
-      return '0|0|0'
 
 @login_required
 def assessor_dashboard(request):
@@ -86,10 +45,6 @@ def assessor_dashboard(request):
 
   data = { 'assignments': assignments, 'available_queries': available_queries,
       'comment_form': comment_form}
-
-  # if this is a superuser, also add the global status stuff
-  if request.user.is_superuser:
-    data['status'] = GlobalAssessmentStatus()
 
   return render_to_response('assessment/assessor_dashboard.html', data,
     RequestContext(request))

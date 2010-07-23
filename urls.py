@@ -6,7 +6,11 @@ from django.contrib import admin
 admin.autodiscover()
 
 urlpatterns = patterns('assessment.views',
+  # Viewing assessor's assigned and available queries
   url(r'^assessor/dashboard/$', 'assessor_dashboard', name='dashboard'),
+
+  # Viewing overall assessment progress
+  url(r'^admin/dashboard/$', 'admin_dashboard', name='admin_dashboard'),
 
   # Confirming query assignment
   url(r'^assessor/selectquery/(?P<query_id>\d+)/$', 'select_query_confirm',
