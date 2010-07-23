@@ -42,6 +42,10 @@
         {% block current_navelement %}{% endblock %}
         <div class="navelement"><a href="{% url dashboard %}">
           Assessor Dashboard</a></div>
+        {% if user.is_superuser %}
+        <div class="navelement"><a href="{% url admin_dashboard %}">Admin Dashboard</a></div>
+        {% endif %}
+
         <div class="navelement"><a href="{% url django.contrib.auth.views.logout %}">Logout</a></div>
         {% else %}
         <div class="navelement"><a href="{% url django.contrib.auth.views.login %}">Login</a></div>
