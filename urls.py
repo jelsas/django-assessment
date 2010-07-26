@@ -12,6 +12,9 @@ urlpatterns = patterns('assessment.views',
   # Viewing overall assessment progress
   url(r'^admin/dashboard/$', 'admin_dashboard', name='admin_dashboard'),
 
+  # Uploading data
+  url(r'^admin/upload_data/$', 'upload_data', name='upload_data'),
+
   # Confirming query assignment
   url(r'^assessor/selectquery/(?P<query_id>\d+)/$', 'select_query_confirm',
     name='select_query_confirm'),

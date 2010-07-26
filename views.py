@@ -23,8 +23,57 @@ def admin_dashboard(request):
           'assignment_progress': assignment_progress}
 
   return render_to_response('assessment/admin_dashboard.html', data,
-   RequestContext(request))
+                            RequestContext(request))
 
+@login_required
+@user_passes_test(lambda user: user.is_superuser)
+def upload_data(request):
+  # upload formats:
+  # for queries file, <qid>:<query_text>
+  # for docpairs file, <qid>:<left_doc>:<right_doc>
+  messages = []
+  if request.method == 'POST':
+    form = DataUploadForm(request.POST, request.FILES)
+    if form.is_valid():
+      # handle the queries form
+      if 'queries_file' in request.FILES:
+        query_count = 0
+        for line in request.FILES['queries_file']:
+          splits = line.strip().split(':')
+          if len(splits) != 2:
+            continue
+          # make sure we don't already have a query with this qid
+          if (Query.objects.filter(qid=splits[0]).count() > 0):
+            continue
+          q = Query(qid = splits[0], text = splits[1])
+          q.save()
+          query_count += 1
+        messages.append('Uploaded %d queries' % query_count)
+      if 'document_pairs_file' in request.FILES:
+        docpair_count = 0
+        missing_queries = set()
+        for line in request.FILES['document_pairs_file']:
+          splits = line.strip().split(':')
+          if len(splits) != 3 or splits[0] in missing_queries:
+            continue
+          try:
+            q = Query.objects.get(qid=splits[0])
+          except Query.DoesNotExist:
+            missing_queries.add(splits[0])
+            messages.append(
+              'Query "%s" in Doc Pairs File does not exist' % splits[0])
+          # TODO: check for duplicates
+          docpair = QueryDocumentPair(query = q,
+                                      left_doc = splits[1],
+                                      right_doc = splits[2])
+          docpair.save()
+          docpair_count += 1
+        messages.append('Uploaded %d query docpairs' % docpair_count)
+  else:
+    form = DataUploadForm()
+  return render_to_response('assessment/upload_data.html',
+                            {'messages': messages, 'form': form},
+                            RequestContext(request))
 
 @login_required
 def assessor_dashboard(request):

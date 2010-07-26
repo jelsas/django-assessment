@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+{% for m in messages %}
+<h1>{{ m }}</h1>
+{% endfor %}
+
+{% if form %}
+<h1>Select files to upload:</h1>
+<form enctype="multipart/form-data" action="." method="post">
+{{ form.as_p }}
+<input type="submit" value="Submit" />
+</form>
+{% endif %}
+
+{% endblock %}
+

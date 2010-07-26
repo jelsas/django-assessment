@@ -20,6 +20,10 @@ class InformationNeedForm(forms.ModelForm):
     model = Assignment
     fields = ('description', 'narrative')
 
+class DataUploadForm(forms.Form):
+  queries_file = forms.FileField(required=False)
+  document_pairs_file = forms.FileField(required=False)
+
 class PreferenceAssessmentForm(forms.ModelForm):
   swap_docs = forms.BooleanField(required = False, widget = forms.HiddenInput)
 
