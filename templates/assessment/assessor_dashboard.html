@@ -4,7 +4,7 @@
 
 <h1>Welcome {{ user }}</h1>
 
-{# CURRENT ASSIGNMENTS #}
+{% if assignments|length > 0 and queries|length > 0 %}
 {% if assignments|length > 0 %}
   <h2>Current Assignments:</h2>
   <table class="info">
@@ -29,7 +29,6 @@
   <h2>No assignments yet.  Please select a new query below.</h2>
 {% endif %}
 
-{# START A NEW QUERY #}
 {% if available_queries|length > 0 %}
 <h2>Available Assignments:</h2>
 <table class="info">
@@ -45,37 +44,16 @@
 </tbody>
 </table>
 {% endif %}
+{% else %}
+<h1>No queries in the system yet!</h1>
+{% endif %}
 
-
-{# SEND FEEDBACK #}
 <h2>Comments?</h2>
 <p>Feel free to leave us any comments about the assessment task:
 <form action="{% url comment %}" method="post">
 {{ comment_form.as_p }}
 <input type="submit" value="Submit" />
 </form>
-
-{% if user.is_superuser %}
-<h2>Assessment Status:</h2>
-<table>
-<tr><th>Assignment Progress:</th>
-  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assignment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
-<tr><th>Current Assignments:</th>
-  <td>{{ status.current_assignments }}</td></tr>
-<tr><th>Complete Assignments:</th>
-  <td>{{ status.complete_assignments }}</td></tr>
-<tr><th>Pending Assignments:</th>
-  <td>{{ status.pending_assignments }}</td></tr>
-<tr><th>Assessment Progress:</th>
-  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ status.assessment_status_chart_arg }}" width="440" height="40" alt="" /></td></tr>
-<tr><th>Complete Assessments:</th>
-  <td>{{ status.complete_assessments }}</td></tr>
-<tr><th>Pending Assessments (Assigned):</th>
-  <td>{{ status.pending_assessments_assigned }}</td></tr>
-<tr><th>Pending Assessments (Unassigned):</th>
-  <td>{{ status.pending_assessments_unassigned }}</td></tr>
-</table>
-{% endif %}
 
 {% endblock %}
 
