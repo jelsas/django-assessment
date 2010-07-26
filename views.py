@@ -2,6 +2,7 @@ from assessment.models import *
 from assessment.forms import *
 from assessment.util import AssignmentProgress, AssessmentProgress
 from django.core.urlresolvers import reverse
+from django.db import IntegrityError
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render_to_response, \
                              get_object_or_404
@@ -42,11 +43,11 @@ def upload_data(request):
           splits = line.strip().split(':')
           if len(splits) != 2:
             continue
-          # make sure we don't already have a query with this qid
-          if (Query.objects.filter(qid=splits[0]).count() > 0):
-            continue
           q = Query(qid = splits[0], text = splits[1])
-          q.save()
+          try:
+            q.save()
+          except IntegrityError:
+            continue
           query_count += 1
         messages.append('Uploaded %d queries' % query_count)
       if 'document_pairs_file' in request.FILES:
@@ -62,11 +63,13 @@ def upload_data(request):
             missing_queries.add(splits[0])
             messages.append(
               'Query "%s" in Doc Pairs File does not exist' % splits[0])
-          # TODO: check for duplicates
           docpair = QueryDocumentPair(query = q,
                                       left_doc = splits[1],
                                       right_doc = splits[2])
-          docpair.save()
+          try:
+            docpair.save()
+          except IntegrityError:
+            continue
           docpair_count += 1
         messages.append('Uploaded %d query docpairs' % docpair_count)
   else:

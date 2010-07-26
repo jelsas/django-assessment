@@ -6,12 +6,15 @@ from assessment import app_settings
 
 class Query(models.Model):
   '''A Query'''
-  qid = models.CharField(max_length=100)
+  qid = models.CharField(max_length=100, unique=True)
   text = models.CharField(max_length=500)
   remaining_assignments = models.IntegerField(default=1)
   assigned_assessors = models.ManyToManyField(User,
                                               related_name='assigned_queries',
                                               through='Assignment')
+
+  class Meta:
+    verbose_name_plural = 'queries'
 
   def __unicode__(self):
     return '%s: %s' % (self.qid, self.text)
@@ -31,6 +34,10 @@ class Assignment(models.Model):
   description = models.TextField(blank=True)
   narrative = models.TextField(blank=True)
 
+  class Meta:
+    # make sure an assessor doesn't get assigned to the same query twice
+    unique_together = ('assessor', 'query')
+
   def save(self):
     '''Custom save method that handles automatically filling in the dates'''
     if not self.id:
@@ -38,6 +45,10 @@ class Assignment(models.Model):
     if self.started_date == None and len(self.description) > 0:
       self.started_date = datetime.now()
     super(Assignment, self).save()
+
+  @models.permalink
+  def get_absolute_url(self):
+    return ('assignment_detail', [str(self.id)])
 
   def num_assessments_complete(self):
     '''The number of assessments complete for this assignment.'''
@@ -98,6 +109,10 @@ class QueryDocumentPair(models.Model):
   left_doc = models.CharField('left document', max_length=100)
   right_doc = models.CharField('right document', max_length=100)
 
+  class Meta:
+    # make sure we don't have the same pair in the DB twice
+    unique_together = ('query', 'left_doc', 'right_doc')
+
   def qid(self):
     return self.query.qid
 
@@ -124,6 +139,14 @@ class PreferenceAssessment(models.Model):
 
   # To hold the "Other" preference reason
   preference_reason_other = models.CharField(max_length=500, blank=True)
+
+  class Meta:
+    # only one judgement per query_doc_pair & assignment
+    unique_together = ('assignment', 'query_doc_pair')
+
+  @models.permalink
+  def get_absolute_url(self):
+    return ('assessment_detail', [str(self.id)])
 
   def get_choices(self):
     '''Returns the appropriate choices for a form given the value of
@@ -192,7 +215,7 @@ class PreferenceAssessment(models.Model):
 
 class PreferenceReason(models.Model):
   '''Options for selecting a preference assessment reason'''
-  short_name = models.CharField(max_length=100)
+  short_name = models.CharField(max_length=100, unique=True)
   description = models.CharField(max_length=500)
   active = models.BooleanField(default=True)
 
@@ -203,6 +226,9 @@ class PreferenceAssessmentReason(models.Model):
   '''A reason for a particular preference assessment.'''
   assessment = models.ForeignKey(PreferenceAssessment, related_name='reasons')
   reason = models.ForeignKey(PreferenceReason)
+
+  class Meta:
+    unique_together = ('assessment', 'reason')
 
   def __unicode__(self):
     return self.reason.short_name
