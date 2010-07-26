@@ -4,7 +4,7 @@
 
 <h1>Welcome {{ user }}</h1>
 
-{% if assignments|length > 0 and queries|length > 0 %}
+{% if assignments|length > 0 or queries|length > 0 %}
 {% if assignments|length > 0 %}
   <h2>Current Assignments:</h2>
   <table class="info">
