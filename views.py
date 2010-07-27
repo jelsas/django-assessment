@@ -9,6 +9,7 @@ from django.shortcuts import render_to_response, \
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext
 from random import randint
+from util import parse_queries_file, parse_docpairs_file
 
 pref_assessment_form_factory = PreferenceAssessmentReasonFormFactory()
 assessment_progress = AssessmentProgress()
@@ -29,9 +30,6 @@ def admin_dashboard(request):
 @login_required
 @user_passes_test(lambda user: user.is_superuser)
 def upload_data(request):
-  # upload formats:
-  # for queries file, <qid>:<query_text>
-  # for docpairs file, <qid>:<left_doc>:<right_doc>
   messages = []
   if request.method == 'POST':
     form = DataUploadForm(request.POST, request.FILES)
@@ -39,33 +37,17 @@ def upload_data(request):
       # handle the queries form
       if 'queries_file' in request.FILES:
         query_count = 0
-        for line in request.FILES['queries_file']:
-          splits = line.strip().split(':')
-          if len(splits) != 2:
-            continue
-          q = Query(qid = splits[0], text = splits[1])
+        for query in parse_queries_file(request.FILES['queries_file']):
           try:
-            q.save()
+            query.save()
           except IntegrityError:
             continue
           query_count += 1
         messages.append('Uploaded %d queries' % query_count)
       if 'document_pairs_file' in request.FILES:
         docpair_count = 0
-        missing_queries = set()
-        for line in request.FILES['document_pairs_file']:
-          splits = line.strip().split(':')
-          if len(splits) != 3 or splits[0] in missing_queries:
-            continue
-          try:
-            q = Query.objects.get(qid=splits[0])
-          except Query.DoesNotExist:
-            missing_queries.add(splits[0])
-            messages.append(
-              'Query "%s" in Doc Pairs File does not exist' % splits[0])
-          docpair = QueryDocumentPair(query = q,
-                                      left_doc = splits[1],
-                                      right_doc = splits[2])
+        for docpair in parse_docpairs_file(request.FILES['document_pairs_file'],
+                                           messages.append):
           try:
             docpair.save()
           except IntegrityError:
