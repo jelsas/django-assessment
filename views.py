@@ -204,7 +204,8 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
   form = PreferenceAssessmentForm(instance = assessment)
   reason_form = pref_assessment_form_factory.create()
 
-  submit_options = [('Submit', '_save')]
+  #submit_options = [('Submit', '_save')]
+  submit_options = []
   if assignment.num_assessments_pending() > 1:
     submit_options.append( ('Submit & Continue', '_continue') )
   elif assignment.num_assessments_pending() == 1:
