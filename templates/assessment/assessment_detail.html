@@ -50,13 +50,15 @@ Right Document ({{ assessment.presented_right_doc}})
 </a>
 </th>
 </tr>
-<tr><td id="leftholder">
+<tr><td>
+<!-- {{ assessment.presented_left_doc_url }} -->
 <iframe class="left" id="leftframe"
   src="{{ assessment.presented_left_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
 </td>
-<td id="rightholder">
+<td>
+<!-- {{ assessment.presented_right_doc_url }} -->
 <iframe class="right" id="rightframe"
   src="{{ assessment.presented_right_doc_url }}">
   Your browser doesn't support iframes.
