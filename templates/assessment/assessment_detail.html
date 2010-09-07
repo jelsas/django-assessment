@@ -6,6 +6,18 @@
 {% endblock %}
 
 {% block content %}
+<script>
+function swapFrame(id, newUrl) {
+  var oldframe = document.getElementById(id);
+  var newframe = document.createElement("iframe");
+  newframe.src = newUrl;
+  newframe.id = id;
+  var par = oldframe.parentNode;
+  par.removeChild(oldframe);
+  par.appendChild(newframe);
+  //return false;
+}
+</script>
 
 <h1>Assessment for [{{assignment.query.text}}]</h1>
 <div class="note">
@@ -29,16 +41,23 @@
 </form>
 
 <table class="info">
-<tr><th>Left Document ({{ assessment.presented_left_doc}}) </th>
-        <th>Right Document ({{ assessment.presented_right_doc}}) </th></tr>
-<tr><td>
-<iframe class="left"
+<tr>
+<th><a href="javascript:swapFrame('leftframe', '{{ assessment.presented_left_doc_url }}');">
+Left Document ({{ assessment.presented_left_doc}})</a></th>
+<th>
+<a href="javascript:swapFrame('rightframe', '{{ assessment.presented_right_doc_url }}');">
+Right Document ({{ assessment.presented_right_doc}})
+</a>
+</th>
+</tr>
+<tr><td id="leftholder">
+<iframe class="left" id="leftframe"
   src="{{ assessment.presented_left_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
 </td>
-<td>
-<iframe class="right"
+<td id="rightholder">
+<iframe class="right" id="rightframe"
   src="{{ assessment.presented_right_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
