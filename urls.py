@@ -15,6 +15,9 @@ urlpatterns = patterns('assessment.views',
   # Uploading data
   url(r'^admin/upload_data/$', 'upload_data', name='upload_data'),
 
+  # Downloading data
+  url(r'^admin/download_data/$', 'download_data', name='download_data'),
+
   # Confirming query assignment
   url(r'^assessor/selectquery/(?P<query_id>\d+)/$', 'select_query_confirm',
     name='select_query_confirm'),
