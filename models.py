@@ -124,8 +124,10 @@ class PreferenceAssessment(models.Model):
   (to indicate the left or right documents are better) or "both bad" to
   indicate both documents are not at all relevant.'''
   # The choice values, and a swapped version for use in the form.
-  PREFERENCE_CHOICES =     ( ('L', 'Left'), ('B', 'Both Bad'), ('R', 'Right') )
-  REV_PREFERENCE_CHOICES = ( ('R', 'Left'), ('B', 'Both Bad'), ('L', 'Right') )
+  PREFERENCE_CHOICES =     \
+    ( ('L', 'Left'), ('B', 'Both Bad'), ('R', 'Right'), ('D', 'Duplicates') )
+  REV_PREFERENCE_CHOICES = \
+    ( ('R', 'Left'), ('B', 'Both Bad'), ('L', 'Right'), ('D', 'Duplicates') )
   assignment = models.ForeignKey(Assignment, related_name='assessments',
     # make sure we don't create any assessments for an assignment without an
     # info need description filled.
