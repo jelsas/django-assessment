@@ -1,3 +1,3 @@
 qid,left_doc,right_doc,preference,assessor,time
-{% for a in data %}{{ a.query.qid }},{{ a.left_doc }},{{ a.right_doc }},{{ a.preference }},{{ a.assessor.id }},{{ a.created_date }}
+{% for a in data %}{{ a.query.qid }},{{ a.left_doc }},{{ a.right_doc }},{{ a.preference }},{{ a.assessor.id }},"{{ a.created_date }}"
 {% endfor %}
