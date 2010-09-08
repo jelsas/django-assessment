@@ -61,6 +61,13 @@ def upload_data(request):
                             RequestContext(request))
 
 @login_required
+@user_passes_test(lambda user: user.is_superuser)
+def download_data(request):
+  return render_to_response('assessment/data_download.txt',
+                            {'data': PreferenceAssessment.objects.all()},
+                            RequestContext(request), mimetype='text/csv')
+
+@login_required
 def assessor_dashboard(request):
   # assignments ordered in decreasing order of # of pending assessments
   assignments = list(request.user.assignments.all())
@@ -204,6 +211,7 @@ def new_assessment(request, assignment_id, querydocumentpair_id):
   form = PreferenceAssessmentForm(instance = assessment)
   reason_form = pref_assessment_form_factory.create()
 
+  # TODO: make these options configurable in settings.py?
   #submit_options = [('Submit', '_save')]
   submit_options = []
   if assignment.num_assessments_pending() > 1:
