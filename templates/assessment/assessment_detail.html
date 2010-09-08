@@ -15,8 +15,27 @@ function swapFrame(id, newUrl) {
   var par = oldframe.parentNode;
   par.removeChild(oldframe);
   par.appendChild(newframe);
-  //return false;
 }
+
+function pageY(elem){
+  return elem.offsetParent ? (elem.offsetTop + pageY(elem.offsetParent)) : elem.offsetTop;
+}
+
+buffer = 320;
+
+function resizeElem(id) {
+  var h = document.documentElement.clientHeight - buffer;
+  document.getElementById(id).style.height = h + "px";
+}
+
+function resizeFrames() {
+  resizeElem('leftframe');
+  resizeElem('rightframe');
+}
+
+window.onload = resizeFrames;
+window.onresize = resizeFrames;
+
 </script>
 
 <h1>Assessment for [{{assignment.query.text}}]</h1>
@@ -50,14 +69,14 @@ Right Document ({{ assessment.presented_right_doc}})
 </a>
 </th>
 </tr>
-<tr><td>
+<tr><td class="framecontainer" id="leftcontainer">
 <!-- {{ assessment.presented_left_doc_url }} -->
 <iframe class="left" id="leftframe"
   src="{{ assessment.presented_left_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
 </td>
-<td>
+<td class="framecontainer" id="rightcontainer">
 <!-- {{ assessment.presented_right_doc_url }} -->
 <iframe class="right" id="rightframe"
   src="{{ assessment.presented_right_doc_url }}">
