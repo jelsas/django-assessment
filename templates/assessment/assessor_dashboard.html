@@ -31,7 +31,11 @@
   </tbody>
   </table>
 {% else %}
+  {% if available_queries|length > 0 %}
   <h2>No assignments yet.  Please select a new query below.</h2>
+  {% else %}
+  <h2>No queries in system.  Please contact the administrator</h2>
+  {% endif %}
 {% endif %}
 
 {% if available_queries|length > 0 %}
