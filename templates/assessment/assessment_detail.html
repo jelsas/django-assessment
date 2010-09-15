@@ -26,6 +26,7 @@ buffer = 320;
 function resizeElem(id) {
   var h = document.documentElement.clientHeight - buffer;
   document.getElementById(id).style.height = h + "px";
+
 }
 
 function resizeFrames() {
@@ -63,9 +64,9 @@ window.onresize = resizeFrames;
 
 <table class="info">
 <tr>
-<th class="{% if docpair.left_fixed %}fixed{% endif %}"><a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
+<th {% if docpair.left_fixed %}class="fixed"{% endif %}><a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
 Left Document ({{ docpair.left_doc }})</a></th>
-<th class="{% if docpair.right_fixed %}fixed{% endif %}">
+<th {% if docpair.right_fixed %}class="fixed"{% endif %}>
 <a href="javascript:swapFrame('rightframe', '{{ docpair.right_doc_url }}');">
 Right Document ({{ docpair.right_doc }})
 </a>
