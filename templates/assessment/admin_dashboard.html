@@ -10,7 +10,7 @@
 {% for a in current_assignments %}
 {% with a.complete|add:a.pending as total %}
 <tr>
-  <td><strong>{{ a.query }}</strong>
+  <td><strong>{{ a.query|truncatewords:7 }}</strong>
         assigned to {{ a.assessor }}
         on {{ a.created_date }}</td>
   <td>
@@ -30,11 +30,11 @@
 {% endfor %}
 <tr><th>Assignments pending:</th><td></td></tr>
 {% for q in pending_assignments %}
-<td><strong>{{ q }}</strong></td>
+<tr><td><strong>{{ q|truncatewords:7 }}</strong></td>
 <td><img src="/site_media/ff0000.gif" height="20px"
         width="500px" border="0"
         style="border-width: 0px; border-style: none;"/>
-    {{ q.remaining_assignments }}</td>
+    {{ q.remaining_assignments }}</td></tr>
 {% endfor %}
 </table>
 
