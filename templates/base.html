@@ -12,21 +12,23 @@
       div.inline {
         width: 100%;
         line-height:32px; }
-      div.inline p {
-        display: inline;
-        margin-right: 40px;
-        white-space:nowrap; }
-      div.inline p:first-child, div.inline ul + p {
-        font-weight: bold; }
+      div.inline {
+        width: 100%; display: table; line-height: 24px; }
       div.inline ul {
-        margin: 0;
-        padding: 0;
-        display: inline;
-        list-style-type: none; }
+        display: table-row; padding: 0px; }
       div.inline ul li {
-        white-space:nowrap;
-        margin-right: 40px;
-        display: inline; }
+        display: table-cell; text-align: center; width: 15%; font-weight: bold;
+        border: 5px solid white; }
+      #radio_container_0 {
+        background-color:#ff6666; }
+      #radio_container_1 {
+        background-color: #66ff66; }
+      #radio_container_2 {
+        background-color: #ffff66; }
+      #radio_container_3 {
+        background-color: #66ff66; }
+      #radio_container_4 {
+        background-color: #ff6666; }
       div.note {
         font-size: 90%;
         background: #f0f0f0; }
