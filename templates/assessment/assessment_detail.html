@@ -2,7 +2,7 @@
 
 {% block current_navelement %}
 <div class="navelement">
-<a href="{% url assignment_detail assignment.id %}">[{{assignment.query.text}}] assessment: {{ assignment.status }}</a></div>
+<a href="{% url assignment_detail assignment.id %}">[{{assignment.query.text}}] {{pending_assessments}} assessment{{ pending_assessments|pluralize }} remaining</a></div>
 {% endblock %}
 
 {% block content %}
@@ -50,10 +50,12 @@ window.onresize = resizeFrames;
 <div class="inline">
 {{ form.as_p }}
 </div>
+{% if reason_form %}
 <div class="inline">
 <p><strong>Why?</strong></p>
 {{ reason_form.as_p }}
 </div>
+{% endif %}
 {% for value, name in submit_options %}
 <input type="submit" value="{{ value }}" name="{{ name }}"/>
 {% endfor %}
@@ -61,25 +63,27 @@ window.onresize = resizeFrames;
 
 <table class="info">
 <tr>
-<th><a href="javascript:swapFrame('leftframe', '{{ assessment.presented_left_doc_url }}');">
-Left Document ({{ assessment.presented_left_doc}})</a></th>
-<th>
-<a href="javascript:swapFrame('rightframe', '{{ assessment.presented_right_doc_url }}');">
-Right Document ({{ assessment.presented_right_doc}})
+<th class="{% if docpair.left_fixed %}fixed{% endif %}"><a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
+Left Document ({{ docpair.left_doc }})</a></th>
+<th class="{% if docpair.right_fixed %}fixed{% endif %}">
+<a href="javascript:swapFrame('rightframe', '{{ docpair.right_doc_url }}');">
+Right Document ({{ docpair.right_doc }})
 </a>
 </th>
 </tr>
 <tr><td class="framecontainer" id="leftcontainer">
-<!-- {{ assessment.presented_left_doc_url }} -->
-<iframe class="left" id="leftframe"
-  src="{{ assessment.presented_left_doc_url }}">
+<!-- {{ docpair.left_doc_url }} -->
+<iframe class="left"
+  id="leftframe"
+  src="{{ docpair.left_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
 </td>
 <td class="framecontainer" id="rightcontainer">
-<!-- {{ assessment.presented_right_doc_url }} -->
-<iframe class="right" id="rightframe"
-  src="{{ assessment.presented_right_doc_url }}">
+<!-- {{ docpair.right_doc_url }} -->
+<iframe class="right{% if docpair.right_fixed %},fixed{% endif %}"
+  id="rightframe"
+  src="{{ docpair.right_doc_url }}">
   Your browser doesn't support iframes.
 </iframe>
 </td></tr>

@@ -18,9 +18,14 @@
   <tbody>
   {% for a in assignments %}
     <tr>
-    <td> [{{ a.query.text }}] </td>
-    <td> {{ a.created_date }} </td>
-    <td> <a href="{% url assignment_detail a.id %}">{{ a.status }}</a> </td>
+    <td> [{{ a.assignment.query.text }}] </td>
+    <td> {{ a.assignment.created_date }} </td>
+    <td> <a href="{% url assignment_detail a.assignment.id %}">
+    {% with a.assignment.num_assessments_complete as complete %}
+      {{complete}} assessment{{ complete|pluralize }} complete,
+    {% endwith %}
+    {{ a.pending_assessments }} assessment{{ a.pending_assessments|pluralize }} pending
+    </a> </td>
     </tr>
   {% endfor %}
   </tbody>

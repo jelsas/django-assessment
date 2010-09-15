@@ -30,15 +30,9 @@ urlpatterns = patterns('assessment.views',
   url(r'^assessor/assignment/(?P<assignment_id>\d+)/next/$',
     'next_assessment', name='next_assessment'),
 
-  # Creating a new assessment for a docpair
-  url(r'^assessor/assignment/(?P<assignment_id>\d+)/'+
-                            '(?P<querydocumentpair_id>\d+)/$',
-    'new_assessment', name='new_assessment'),
-
   # Assessment viewing
   url(r'^assessor/assessment/(?P<assessment_id>\d+)/$',
     'assessment_detail', name='assessment_detail'),
-
 
   # Entering the information need
   url(r'^assessor/assignment/(?P<assignment_id>\d+)/infoneed/$',

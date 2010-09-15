@@ -6,14 +6,36 @@
 
 <h2>Assessment Status:</h2>
 <table>
-<tr><th>Assignment Progress:</th>
-  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ assignment_progress.google_chart_argument }}" width="440" height="40" alt="" /></td></tr>
-<tr><th>Assigned / Complete / Total:</th>
-  <td>{{ assignment_progress.assigned }} / {{ assignment_progress.complete }} / {{ assignment_progress.total }}</td></tr>
-<tr><th>Assessment Progress:</th>
-  <td><img src="http://chart.apis.google.com/chart?chbh=a,4,9&chs=440x40&cht=bhs&chco=4D89F9,C6D9FD,FF9900&chds=0,100&chd=t:{{ assessment_progress.google_chart_argument}}" width="440" height="40" alt="" /></td></tr>
-<tr><th>Assigned / Complete / Total:</th>
-  <td>{{ assessment_progress.assigned }} / {{ assessment_progress.complete }} / {{ assessment_progress.total }}</td></tr>
+<tr><th>Assignments in-progress or complete:</th><td></td></tr>
+{% for a in current_assignments %}
+{% with a.complete|add:a.pending as total %}
+<tr>
+  <td><strong>{{ a.query }}</strong>
+        assigned to {{ a.assessor }}
+        on {{ a.created_date }}</td>
+  <td>
+    {% if total > 0 %}
+      <img src="/site_media/00ff00.gif" height="20px"
+            width="{% widthratio a.complete total 500 %}px"
+            border="0"
+            style="border-width: 0px; border-style: none;"/>
+      <img src="/site_media/0000ff.gif" height="20px"
+            width="{% widthratio a.pending total 500 %}px"
+            border="0"
+            style="border-width: 0px; border-style: none;"/>
+     {% endif %}
+      {{ a.complete }} / {{ total }}<br/></td>
+</tr>
+{% endwith %}
+{% endfor %}
+<tr><th>Assignments pending:</th><td></td></tr>
+{% for q in pending_assignments %}
+<td><strong>{{ q }}</strong></td>
+<td><img src="/site_media/ff0000.gif" height="20px"
+        width="500px" border="0"
+        style="border-width: 0px; border-style: none;"/>
+    {{ q.remaining_assignments }}</td>
+{% endfor %}
 </table>
 
 <p><a href="{% url upload_data %}">Upload data</a></p>

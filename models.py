@@ -46,32 +46,27 @@ class Assignment(models.Model):
       self.started_date = datetime.now()
     super(Assignment, self).save()
 
+  def doc_judgement_counts(self):
+    docs = self.query.documents.all()
+    doc_counts = []
+    for d in docs:
+      matching_assessments = self.assessments().filter(left_doc = d) \
+                            | self.assessments().filter(right_doc = d)
+      doc_counts.append( (d, matching_assessments.count()) )
+    return doc_counts
+
   @models.permalink
   def get_absolute_url(self):
     return ('assignment_detail', [str(self.id)])
 
   def num_assessments_complete(self):
     '''The number of assessments complete for this assignment.'''
-    return self.assessments.count()
-
-  def num_assessments_pending(self):
-    '''The number of assessments pending for this assignment.'''
-    return self.query.doc_pairs.count() - self.num_assessments_complete()
-
-  def pending_query_doc_pairs(self):
-    '''The assessments pending for this assignment.'''
-    completed_ids = [ a.query_doc_pair.id for a in self.assessments.all() ]
-    return self.query.doc_pairs.exclude(id__in=completed_ids)
-
-  def complete(self):
-    '''Boolean indicating whether all the assessments have been completed for
-    this assignment.'''
-    return len(self.description) > 0 and self.num_assessments_pending() == 0
+    return self.assessments().count()
 
   def latest_assessment(self):
     '''The most recent assessment, or None if no assessments have been
     completed'''
-    all_assessments = self.assessments.all()
+    all_assessments = self.assessments()
     if all_assessments.count() == 0:
       return None
     return all_assessments.order_by('-created_date')[0]
@@ -87,133 +82,134 @@ class Assignment(models.Model):
     else:
       return datetime.now() - self.started_date
 
-  def status(self):
-    '''Returns a string representation of the status of this assignment,
-    showing whether the assignment is complete and if not, how many assessments
-    are remaining.'''
-    if self.complete():
-      return 'Complete'
-    elif len(self.description) == 0:
-      return 'Not Started'
-    else:
-      return '%d / %d' % (self.num_assessments_complete(), \
-                          self.query.doc_pairs.count())
+  def assessments(self):
+    '''Returns all the AssessedDocumentRelation objects associated with this
+    assignment.'''
+    docs = self.documents.values('id')
+    assessments = AssessedDocumentRelation.objects.filter(source_doc__in=docs)
+    return assessments
+
+  def available_documents(self):
+    '''All documents that haven't been judged as bad, or as a duplicate'''
+    assessments = self.assessments()
+    bad_documents = set( \
+      assessments.filter(relation_type = 'B').values_list('source_doc', \
+                                                          flat=True))
+    dup_documents = set( \
+      assessments.filter(relation_type = 'D').values_list('target_doc', \
+                                                          flat=True))
+    return self.documents.exclude(id__in = bad_documents | dup_documents)
 
   def __unicode__(self):
     return '%s assigned to %s' % (self.assessor, self.query)
 
-class QueryDocumentPair(models.Model):
-  '''A query-document pair.  Contains a reference to 'left' and 'right'
-  documents, which will be referred to with the PreferenceAssessment'''
-  query = models.ForeignKey(Query, related_name='doc_pairs')
-  left_doc = models.CharField('left document', max_length=100)
-  right_doc = models.CharField('right document', max_length=100)
+class Document(models.Model):
+  '''A query-document pair.'''
+  query = models.ForeignKey(Query, related_name='documents')
+  document = models.CharField('document', max_length=300)
+  score = models.FloatField('score', blank=True)
 
   class Meta:
     # make sure we don't have the same pair in the DB twice
-    unique_together = ('query', 'left_doc', 'right_doc')
+    unique_together = ('query', 'document')
 
   def qid(self):
     return self.query.qid
 
   def __unicode__(self):
-    return '[%s] %s vs. %s' % (self.query.text, self.left_doc, self.right_doc)
+    return '[%s] %s' % (self.query.text, self.document)
 
-class PreferenceAssessment(models.Model):
-  '''A judgement on a query-document pair.  Supported judgements are left, right
-  (to indicate the left or right documents are better) or "both bad" to
-  indicate both documents are not at all relevant.'''
-  # The choice values, and a swapped version for use in the form.
-  PREFERENCE_CHOICES =     \
-    ( ('L', 'Left'), ('B', 'Both Bad'), ('R', 'Right'), ('D', 'Duplicates') )
-  REV_PREFERENCE_CHOICES = \
-    ( ('R', 'Left'), ('B', 'Both Bad'), ('L', 'Right'), ('D', 'Duplicates') )
-  assignment = models.ForeignKey(Assignment, related_name='assessments',
-    # make sure we don't create any assessments for an assignment without an
-    # info need description filled.
-    limit_choices_to = ~models.Q(description__exact = ''))
-  query_doc_pair = models.ForeignKey(QueryDocumentPair,
-    related_name='assessments')
-  created_date = models.DateTimeField('creation date', editable=False)
-  preference = models.CharField(max_length=1, choices=PREFERENCE_CHOICES)
-  # Indicates whether the documents should be swapped when displayed
-  swap_docs = models.BooleanField(default=False)#, editable=False)
+class AssessedDocument(models.Model):
+  assignment = models.ForeignKey(Assignment, related_name='documents')
+  document = models.ForeignKey(Document)
+  # The related_to field contains all document relations, including preference,
+  # duplicate and bad-document judgements
+  relations = models.ManyToManyField('self', symmetrical=False,
+                                     through='AssessedDocumentRelation')
 
-  # To hold the "Other" preference reason
-  preference_reason_other = models.CharField(max_length=500, blank=True)
+  def is_bad(self):
+    '''Indicates whether the document has been judged bad.'''
+    return self.as_source.exists(relation_type = 'B')
+
+  def is_dup(self):
+    '''Indicates whether the document has been judged a duplicate.'''
+    return self.as_target.exists(relation_type = 'D')
+
+  def n_times_preferred(self):
+    '''The number of times this document is preferred to other documents'''
+    return self.as_source.filter(relation_type = 'P').count()
+
+  def n_times_nonpreferred(self):
+    '''The number of times this document is preferred to other documents'''
+    return self.as_target.filter(relation_type = 'P').count()
+
+  def preferred_to(self):
+    '''The documents this document is preferred to'''
+    return self.as_source.filter(relation_type = 'P').values_list( \
+                                'target_doc', flat=True)
+
+  def judged_with(self):
+    '''The other documents this doc. has been presented with'''
+    return set(self.as_source.values_list('target_doc', flat=True)) | \
+            set(self.as_target.values_list('source_doc', flat=True))
+
+  def available_pairs(self):
+    '''The other documents that aren't bad or duplicates that this document
+    can be judged with'''
+    available = self.assignment.available_documents() # excludes bad & dups
+    available = available.exclude(id = self.id) # exclude self
+    available = available.exclude(id__in = self.judged_with()) # exclude jud. w/
+    return available
 
   class Meta:
-    # only one judgement per query_doc_pair & assignment
-    unique_together = ('assignment', 'query_doc_pair')
-
-  @models.permalink
-  def get_absolute_url(self):
-    return ('assessment_detail', [str(self.id)])
-
-  def get_choices(self):
-    '''Returns the appropriate choices for a form given the value of
-    swap_docs.'''
-    if self.swap_docs: return self.REV_PREFERENCE_CHOICES
-    else: return self.PREFERENCE_CHOICES
-
-  def left_doc(self):
-    '''Returns the (true) left document'''
-    return self.query_doc_pair.left_doc
-
-  def right_doc(self):
-    '''Returns the (true) right document'''
-    return self.query_doc_pair.right_doc
-
-  def presented_left_doc(self):
-    '''Returns the (possibly swapped) left document'''
-    if self.swap_docs: return self.query_doc_pair.right_doc
-    else: return self.query_doc_pair.left_doc
-
-  def presented_right_doc(self):
-    '''Returns the (possibly swapped) right document'''
-    if self.swap_docs: return self.query_doc_pair.left_doc
-    else: return self.query_doc_pair.right_doc
-
-  def presented_left_doc_url(self):
-    '''Returns the (possibly swapped) left document URL'''
-    return app_settings.DOCSERVER_URL_PATTERN % self.left_doc()
-
-  def presented_right_doc_url(self):
-    '''Returns the (possibly swapped) right document URL'''
-    return app_settings.DOCSERVER_URL_PATTERN % self.right_doc()
-
-  def save(self):
-    '''Custom save method that handles automatically filling in the dates'''
-    if not self.id:
-      self.created_date = datetime.now()
-    super(PreferenceAssessment, self).save()
-
-  def assessor(self):
-    return self.assignment.assessor
-
-  def query(self):
-    return self.assignment.query
-
-  def reasons_str(self):
-    return ', '.join(unicode(r) for r in self.reasons.all())
-  reasons_str.short_description = "Reasons"
+    unique_together = ('assignment', 'document')
 
   def __unicode__(self):
-    try:
-      left, right = self.left_doc(), self.right_doc()
-    except QueryDocumentPair.DoesNotExist:
-      return 'UNINITIALIZED'
+    return 'doc %s, assignment %s' % (self.document, self.assignment)
 
-    if self.preference == 'L':
-      preferred, unpreferred = left, right
-    elif self.preference == 'R':
-      preferred, unpreferred = right, left
-    elif self.preference == 'B':
-      return '%s, %s both bad' % (left, right)
-    else:
-      return 'neither %s or %s' % (left, right)
+class AssessedDocumentRelation(models.Model):
+  '''Represents all assessments for documents, including preferences,
+  duplicates, and 'bad' judgements.'''
+  RELATION_TYPES = ( ('P', 'Preferred To'), ('D', 'Duplicate Of'),
+                     ('B', 'Bad') )
+  # TODO: ensure source_doc.assignment == target_doc.assignment
+  # NOTE: when the relation is B, refers to the source_doc, and the target_doc
+  #       is just used as a placeholder for calculating the "next assessment"
+  source_doc = models.ForeignKey('AssessedDocument', related_name='as_source')
+  target_doc = models.ForeignKey('AssessedDocument', related_name='as_target')
+  created_date = models.DateTimeField('started date', editable=False)
+  relation_type = models.CharField(max_length=1, choices=RELATION_TYPES)
+  reasons = models.ManyToManyField('PreferenceReason', blank=True,
+                                    related_name='relations')
+  source_presented_left = models.BooleanField(default=True)
 
-    return '%s preferred over %s' % (preferred, unpreferred)
+  def assignment(self):
+    return self.source_doc.assignment
+
+  def save(self):
+    '''Custom save method that handles automatically filling in the date'''
+    if not self.id:
+      self.created_date = datetime.now()
+    super(AssessedDocumentRelation, self).save()
+
+  class Meta:
+    unique_together = ('source_doc', 'target_doc')
+
+  def __unicode__(self):
+    if self.relation_type == 'P':
+      return '[%s] document %s preferred to %s' % \
+        (self.source_doc.assignment.query,
+         self.source_doc.document.document,
+         self.target_doc.document.document)
+    elif self.relation_type == 'D':
+      return '[%s] document %s duplicate of %s' % \
+        (self.source_doc.assignment.query,
+         self.source_doc.document.document,
+         self.target_doc.document.document)
+    elif self.relation_type == 'B':
+      return '[%s] document %s is bad' % \
+        (self.source_doc.assignment.query,
+         self.source_doc.document.document)
 
 class PreferenceReason(models.Model):
   '''Options for selecting a preference assessment reason'''
@@ -224,19 +220,9 @@ class PreferenceReason(models.Model):
   def __unicode__(self):
     return self.short_name
 
-class PreferenceAssessmentReason(models.Model):
-  '''A reason for a particular preference assessment.'''
-  assessment = models.ForeignKey(PreferenceAssessment, related_name='reasons')
-  reason = models.ForeignKey(PreferenceReason)
-
-  class Meta:
-    unique_together = ('assessment', 'reason')
-
-  def __unicode__(self):
-    return self.reason.short_name
-
 class Comment(models.Model):
   '''A simple comment on the assessment task.'''
+  # TODO: add a 'hook' to email comments to administrator
   assessor = models.ForeignKey(User)
   comment = models.TextField()
   created_date = models.DateTimeField('creation date', editable=False)

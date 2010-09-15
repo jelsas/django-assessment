@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 
 {% block current_navelement %}
-<div class="navelement">[{{assignment.query.text}}] assessment: {{ assignment.status }}</div>
+<div class="navelement">[{{assignment.query.text}}] {{pending_assessments}} assessment{{ pending_assessments|pluralize }} remaining</div>
 {% endblock %}
 
 {% block content %}
@@ -15,10 +15,11 @@
 <p>{{assignment.narrative}}</p>
 <p><a href="{% url information_need assignment.id %}?next={% url assignment_detail assignment.id %}">Update</a>
 
-{% if assignment.num_assessments_pending > 0 %}
-  <h2>{{assignment.num_assessments_pending}} pending assessments</h2>
+{% with assignment.num_assessments_complete as complete %}
+{% if pending_assessments > 0 %}
+  <h2>{{pending_assessments}} pending assessments</h2>
   <p><a href="{% url next_assessment assignment.id %}">
-  {% if assignment.num_assessments_complete = 0 %}Get started
+  {% if complete = 0 %}Get started
   {% else %}Continue assessing
   {% endif %}
   </a></p>
@@ -26,15 +27,15 @@
   <h2>You're done!  No more pending assessments for this query.</h2>
 {% endif %}
 
-{% if assignment.num_assessments_complete > 0 %}
-  <h2>Complete assessments ({{assignment.num_assessments_complete}}):</h2>
+{% if complete > 0 %}
+  <h2>Complete assessments ({{complete}}):</h2>
   <ul>
     {% for assessment in assignment.assessments.all %}
     <li><a href="{% url assessment_detail assessment.id %}"> {{assessment}}</a></li>
     {% endfor %}
   </ul>
 {% endif %}
-
+{% endwith %}
 
 {% else %}
 

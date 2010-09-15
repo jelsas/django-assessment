@@ -24,20 +24,78 @@ class DataUploadForm(forms.Form):
   queries_file = forms.FileField(required=False)
   document_pairs_file = forms.FileField(required=False)
 
-class PreferenceAssessmentForm(forms.ModelForm):
-  swap_docs = forms.BooleanField(required = False, widget = forms.HiddenInput)
+class PreferenceAssessmentForm(forms.Form):
+  preference = forms.ChoiceField(
+     choices = ( ('LB', 'Left Bad'),
+                 ('L', 'Left Preferred'),
+                 ('D', 'Duplicates'),
+                 ('R', 'Right Preferred'),
+                 ('RB', 'Right Bad') ),
+     label = 'Which document do you prefer?',
+     widget = forms.RadioSelect)
+  # the left and right docs refer to the AssessedDocuments (not Documents)
+  left_doc = forms.CharField( widget = forms.HiddenInput )
+  right_doc = forms.CharField( widget = forms.HiddenInput )
 
-  def __init__(self, *args, **kwargs):
-    super(PreferenceAssessmentForm, self).__init__(*args, **kwargs)
-    # Dynamically add the 'preference' field to setup the choices
-    self.fields['preference'] = forms.ChoiceField(
-                        choices = self.instance.get_choices(),
-                        label = 'Which document do you prefer?',
-                        widget = forms.RadioSelect)
+  @classmethod
+  def from_assessment(cls, assessment):
+    '''Creates a PreferenceAssessmentForm from an AssessedDocumentRelation'''
+    if assessment.source_presented_left:
+      left_doc = assessment.source_doc.id
+      right_doc = assessment.target_doc.id
+      if assessment.relation_type == 'P':
+        preference = 'L'
+      elif assessment.relation_type == 'D':
+        preference = 'D'
+      elif assessment.relation_type == 'B':
+        preference = 'LB'
+    else:
+      left_doc = assessment.target_doc.id
+      right_doc = assessment.source_doc.id
+      if assessment.relation_type == 'P':
+        preference = 'R'
+      elif assessment.relation_type == 'D':
+        preference = 'D'
+      elif assessment.relation_type == 'B':
+        preference = 'RB'
 
-  class Meta:
-    model = PreferenceAssessment
-    fields = ('preference', 'swap_docs')
+    return cls( {'preference':preference,
+                 'left_doc':left_doc,
+                 'right_doc':right_doc } )
+
+  def to_assessment(self):
+    '''Converts this form to an UNSAVED assessment object.'''
+    preference = self.cleaned_data['preference']
+    left_doc = AssessedDocument.objects.get(pk=self.cleaned_data['left_doc'])
+    right_doc = AssessedDocument.objects.get(pk=self.cleaned_data['right_doc'])
+    if preference == 'LB':
+      return AssessedDocumentRelation( source_doc = left_doc,
+                                      target_doc = right_doc,
+                                      relation_type = 'B',
+                                      source_presented_left = True )
+    elif preference == 'L':
+      return AssessedDocumentRelation( source_doc = left_doc,
+                                      target_doc = right_doc,
+                                      relation_type = 'P',
+                                      source_presented_left = True )
+    elif preference == 'D':
+      return AssessedDocumentRelation( source_doc = left_doc,
+                                      target_doc = right_doc,
+                                      relation_type = 'D',
+                                      source_presented_left = True )
+    elif preference == 'R':
+      return AssessedDocumentRelation( source_doc = right_doc,
+                                      target_doc = left_doc,
+                                      relation_type = 'P',
+                                      source_presented_left = False )
+    elif preference == 'RB':
+      return AssessedDocumentRelation( source_doc = right_doc,
+                                      target_doc = left_doc,
+                                      relation_type = 'B',
+                                      source_presented_left = False )
+    else:
+      # shouldn't happen.
+      return None
 
 class PreferenceAssessmentReasonForm(forms.Form):
 
