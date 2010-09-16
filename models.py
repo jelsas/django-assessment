@@ -3,6 +3,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
 from assessment import app_settings
+from assessment.util import flatten
 
 class Query(models.Model):
   '''A Query'''
@@ -99,6 +100,12 @@ class Assignment(models.Model):
       assessments.filter(relation_type = 'D').values_list('target_doc', \
                                                           flat=True))
     return self.documents.exclude(id__in = bad_documents | dup_documents)
+
+  def unassessed_documents(self):
+    '''Documents that have not been judged at all'''
+    assessed_docs = set(flatten( \
+        self.assessments().values_list('source_doc', 'target_doc')))
+    return self.documents.exclude(id__in = assessed_docs)
 
   def __unicode__(self):
     return '%s assigned to %s' % (self.assessor, self.query)
