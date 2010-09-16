@@ -87,18 +87,24 @@ class BubbleSortStrategy(Strategy):
       keep_doc = latest_assessment.source_doc
       keep_left = latest_assessment.source_presented_left
 
-    # find all the documents that have been judged with keep_doc
-    # and find the highest scoring one not in that set
-    candidate_pairs = keep_doc.available_pairs()
-
-    if candidate_pairs.count() > 0:
-      if keep_left:
-        return DocumentPairPresentation(keep_doc, \
-          candidate_pairs.order_by('-document__score')[0], True, False)
+    # find the next document in the pair.  First, favor documents that haven't
+    # been judged at all, then favor docs. that haven't been judged with the
+    # keep_doc
+    other_docs = assignment.unassessed_documents()
+    if other_docs.exists():
+      other_doc = other_docs.order_by('-document__score')[0]
+    else:
+      other_docs = keep_doc.available_pairs()
+      if other_docs.exists():
+        other_doc = other_docs.order_by('-document__score')[0]
       else:
-        return DocumentPairPresentation(\
-          candidate_pairs.order_by('-document__score')[0],
-          keep_doc, False, True)
+        other_doc = None
+
+    if other_doc:
+      if keep_left:
+        return DocumentPairPresentation(keep_doc, other_doc, True, False)
+      else:
+        return DocumentPairPresentation(other_doc, keep_doc, False, True)
     else:
       # there weren't any available other documents with this one, so pick
       # anther doc
