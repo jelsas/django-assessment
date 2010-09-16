@@ -230,7 +230,6 @@ class PreferenceReason(models.Model):
 
 class Comment(models.Model):
   '''A simple comment on the assessment task.'''
-  # TODO: add a 'hook' to email comments to administrator
   assessor = models.ForeignKey(User)
   comment = models.TextField()
   created_date = models.DateTimeField('creation date', editable=False)
