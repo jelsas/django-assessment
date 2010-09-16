@@ -7,20 +7,6 @@
 
 {% block content %}
 <script>
-function swapFrame(id, newUrl) {
-  var oldframe = document.getElementById(id);
-  var newframe = document.createElement("iframe");
-  newframe.src = newUrl;
-  newframe.id = id;
-  var par = oldframe.parentNode;
-  par.removeChild(oldframe);
-  par.appendChild(newframe);
-}
-
-function pageY(elem){
-  return elem.offsetParent ? (elem.offsetTop + pageY(elem.offsetParent)) : elem.offsetTop;
-}
-
 buffer = 320;
 
 function resizeElem(id) {
@@ -33,6 +19,18 @@ function resizeFrames() {
   resizeElem('leftframe');
   resizeElem('rightframe');
 }
+
+function swapFrame(id, newUrl) {
+  var oldframe = document.getElementById(id);
+  var newframe = document.createElement("iframe");
+  newframe.src = newUrl;
+  newframe.id = id;
+  var par = oldframe.parentNode;
+  par.removeChild(oldframe);
+  par.appendChild(newframe);
+  resizeElem(id)
+}
+
 
 window.onload = resizeFrames;
 window.onresize = resizeFrames;
@@ -64,15 +62,20 @@ window.onresize = resizeFrames;
 
 <table class="info">
 <tr>
-<th {% if docpair.left_fixed %}class="fixed"{% endif %}><a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
-Left Document ({{ docpair.left_doc }})</a></th>
-<th {% if docpair.right_fixed %}class="fixed"{% endif %}>
+<th class="halfwidth{% if docpair.left_fixed %} fixed{% endif %}">
+<div>
+<a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
+Left Document ({{ docpair.left_doc }})</a>
+</div>
+</th>
+<th class="halfwidth{% if docpair.right_fixed %} fixed{% endif %}">
+<div>
 <a href="javascript:swapFrame('rightframe', '{{ docpair.right_doc_url }}');">
-Right Document ({{ docpair.right_doc }})
-</a>
+Right Document ({{ docpair.right_doc }})</a>
+</div>
 </th>
 </tr>
-<tr><td class="framecontainer" id="leftcontainer">
+<tr><td id="leftcontainer">
 <!-- {{ docpair.left_doc_url }} -->
 <iframe class="left"
   id="leftframe"
@@ -80,7 +83,7 @@ Right Document ({{ docpair.right_doc }})
   Your browser doesn't support iframes.
 </iframe>
 </td>
-<td class="framecontainer" id="rightcontainer">
+<td id="rightcontainer">
 <!-- {{ docpair.right_doc_url }} -->
 <iframe class="right{% if docpair.right_fixed %},fixed{% endif %}"
   id="rightframe"
