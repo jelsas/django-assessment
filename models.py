@@ -1,6 +1,7 @@
 # Models for document relevance assessment app.
 from django.db import models
 from django.contrib.auth.models import User
+from django.core.mail import mail_admins
 from datetime import datetime
 from assessment import app_settings
 from assessment.util import flatten
@@ -239,6 +240,12 @@ class Comment(models.Model):
     if not self.id:
       self.created_date = datetime.now()
     super(Comment, self).save()
+    # send an email to the administrator.  this should be a signal, but
+    # it isn't
+    mail_admins('New Assessment Comment',
+        'from: %s\ndate: %s\ncomment: %s\n' % \
+          (self.assessor, self.created_date, self.comment))
+
 
   def __unicode__(self):
     return 'by %s on %s' % (self.assessor, self.created_date)
