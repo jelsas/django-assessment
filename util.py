@@ -2,6 +2,12 @@ from django.db.models import Sum
 from django.core.cache import cache
 from assessment.models import *
 from functools import wraps
+from itertools import chain
+
+def flatten(listOfLists):
+  "Flatten one level of nesting"
+  # from http://docs.python.org/library/itertools.html
+  return chain.from_iterable(listOfLists)
 
 def my_cache(func, timeout_secs = 30):
   '''A decorator for caching of function output.  Only works with zero
