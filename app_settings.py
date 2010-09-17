@@ -10,3 +10,9 @@ REGISTRATION_KEY = getattr(settings, 'REGISTRATION_KEY', None)
 # number of assessments per query
 ASSESSMENTS_PER_QUERY = getattr(settings, 'ASSESSMENTS_PER_QUERY', 25)
 
+# max number of assessments per document
+MAX_ASSESSMENTS_PER_DOC = getattr(settings, 'MAX_ASSESSMENTS_PER_DOC', -1)
+
+# should we provide a "why?" option?
+COLLECT_PREFERENCE_REASON = getattr(settings, 'COLLECT_PREFERENCE_REASON',
+                                      False)

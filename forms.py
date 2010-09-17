@@ -9,12 +9,13 @@ class CustomRadioRenderer(forms.widgets.RadioFieldRenderer):
   # see http://skyl.org/log/post/skyl/2010/01/subclass-django-forms-widgets-radiofieldrenderer-and-django-forms-widgets-radioselect-for-custom-rendering-of-individual-choices/
   def render(self):
     """Outputs a <ul> for this set of radio fields."""
+    if not app_settings.COLLECT_PREFERENCE_REASON:
+      # automatically submits when we're not collecting "why"
+      self.attrs['onclick'] = 'this.form.submit()'
     return mark_safe(u'<ul>\n%s\n</ul>' % \
       u'\n'.join([u'<li id="%s">%s</li>' \
         % ('radio_container_%s'%w.index, force_unicode(w) ) for w in self]))
 
-class CustomRadioSelect(forms.widgets.RadioSelect):
-  renderer = CustomRadioRenderer
 
 class ValidKeyRegistrationForm(RegistrationFormUniqueEmail):
   registration_key = forms.CharField()
@@ -45,7 +46,7 @@ class PreferenceAssessmentForm(forms.Form):
                  ('R', 'Right Preferred'),
                  ('RB', 'Right Bad') ),
      label = 'Which document do you prefer?',
-     widget = CustomRadioSelect())
+     widget = forms.RadioSelect( renderer = CustomRadioRenderer ) )
   # the left and right docs refer to the AssessedDocuments (not Documents)
   left_doc = forms.CharField( widget = forms.HiddenInput )
   right_doc = forms.CharField( widget = forms.HiddenInput )

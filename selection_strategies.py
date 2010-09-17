@@ -67,6 +67,11 @@ class Strategy(object):
       else:
         return [None, assignment.source_doc]
 
+  def new_pair(self, assignment, order_by = '?'):
+    '''Gets a pair of documents, using the ordering relation specified.'''
+    docs = assignment.available_documents().order_by(order_by)[0:2]
+    return DocumentPairPresentation(docs[0], docs[1], False, False)
+
 class BubbleSortStrategy(Strategy):
   '''A strategy that performs a Bubble Sort type selection, with the goal of
   exposing the assessor to the whole document set as soon as possible, finding
@@ -77,8 +82,7 @@ class BubbleSortStrategy(Strategy):
     latest_assessment = assignment.latest_assessment()
     if latest_assessment is None:
       # just grab the first 2 docs for assessment
-      docs = assignment.available_documents().order_by('-document__score')[0:2]
-      return DocumentPairPresentation(docs[0], docs[1], False, False)
+      return self.new_pair(assignment, order_by='-document__score')
 
     if latest_assessment.relation_type == 'B':
       keep_doc = latest_assessment.target_doc

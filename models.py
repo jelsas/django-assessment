@@ -2,6 +2,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.mail import mail_admins
+from django.db.models import Count
 from datetime import datetime
 from assessment import app_settings
 from assessment.util import flatten
@@ -92,7 +93,8 @@ class Assignment(models.Model):
     return assessments
 
   def available_documents(self):
-    '''All documents that haven't been judged as bad, or as a duplicate'''
+    '''All documents that haven't been judged as bad, or as a duplicate, and
+    also haven't been judged more than MAX_ASSESSMENTS_PER_DOC times.'''
     assessments = self.assessments()
     bad_documents = set( \
       assessments.filter(relation_type = 'B').values_list('source_doc', \
@@ -100,7 +102,15 @@ class Assignment(models.Model):
     dup_documents = set( \
       assessments.filter(relation_type = 'D').values_list('target_doc', \
                                                           flat=True))
-    return self.documents.exclude(id__in = bad_documents | dup_documents)
+    docs = self.documents.exclude( id__in = bad_documents | dup_documents )
+    if app_settings.MAX_ASSESSMENTS_PER_DOC > 0:
+      docs = docs.annotate(src_count=Count('as_source'), \
+                          tar_count=Count('as_target'))
+      # there's probably a way to do this without explicitly looping over all
+      # documents, but I can't figure it out
+      docs = [d for d in docs if  \
+        (d.src_count + d.tar_count) <= app_settings.MAX_ASSESSMENTS_PER_DOC ]
+    return docs
 
   def unassessed_documents(self):
     '''Documents that have not been judged at all'''
@@ -142,6 +152,10 @@ class AssessedDocument(models.Model):
   def is_dup(self):
     '''Indicates whether the document has been judged a duplicate.'''
     return self.as_target.exists(relation_type = 'D')
+
+  def n_times_assessed(self):
+    '''The number of times this document was assessed with any other document'''
+    return self.as_source.count() + self.as_target.count()
 
   def n_times_preferred(self):
     '''The number of times this document is preferred to other documents'''
