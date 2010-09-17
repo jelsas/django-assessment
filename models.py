@@ -107,9 +107,11 @@ class Assignment(models.Model):
       docs = docs.annotate(src_count=Count('as_source'), \
                           tar_count=Count('as_target'))
       # there's probably a way to do this without explicitly looping over all
-      # documents, but I can't figure it out
-      docs = [d for d in docs if  \
-        (d.src_count + d.tar_count) <= app_settings.MAX_ASSESSMENTS_PER_DOC ]
+      # documents, but I can't figure it out.
+      docs = (d.id for d in docs if  \
+        (d.src_count + d.tar_count) <= app_settings.MAX_ASSESSMENTS_PER_DOC)
+      # make sure we return a QuerySet, not a list
+      docs = self.documents.filter(id__in=docs)
     return docs
 
   def unassessed_documents(self):
