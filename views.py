@@ -134,7 +134,13 @@ def select_query_confirm(request, query_id):
     # create a new assignment
     assignment = Assignment(assessor = request.user,
                             query = query)
-    assignment.save()
+    try:
+      assignment.save()
+    except IntegrityError:
+      # must be already assigned to this query, so bail here & go to the
+      # assignment detail page
+      return HttpResponseRedirect(reverse('assignment_detail',
+                                  args=[assignment.id]))
     # decrement our remaining_assignments field
     query.remaining_assignments -= 1
     query.save()
@@ -227,13 +233,30 @@ def assessment_detail(request, assessment_id):
     #reason_form = pref_assessment_form_factory.create(request.POST)
     if form.is_valid():# and reason_form.is_valid():
       new_assessment = form.to_assessment()
-      assessment.source_doc = new_assessment.source_doc
-      assessment.target_doc = new_assessment.target_doc
+      if assessment.source_doc != new_assessment.source_doc or \
+          assessment.target_doc != new_assessment.target_doc:
+        # someone was monkeying with the form (or the ID in the URL) and the
+        # assessment to be saved doesn't match what was in the URL.
+        # so we'll just ignore this, log an error,
+        # and go to the next assessment
+        message = '''
+          user %s
+          assessment %s
+          %s != %s (source)
+          %s != %s (target)''' % (request.user, str(assessment.id),
+                              assessment.source_doc, new_assessment.source_doc,
+                              assessment.target_doc, new_assessment.target_doc)
+        mail_admins('Error saving assessment from user %s' % request.user,
+            message)
+        return HttpResponseRedirect(reverse('next_assessment',
+                                    args=[assessment.assignment().id]))
+
       assessment.relation_type = new_assessment.relation_type
       #assessment.reasons = new_assessment.reasons
       assessment.source_presented_left = new_assessment.source_presented_left
       #assessment.preference_reason_other = reason_form.cleaned_data['other']
       assessment.save()
+
 
       # update the checked reasons
       #existing_assessment_reasons = assessment.reasons
