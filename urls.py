@@ -30,6 +30,13 @@ urlpatterns = patterns('assessment.views',
   url(r'^assessor/assignment/(?P<assignment_id>\d+)/next/$',
     'next_assessment', name='next_assessment'),
 
+  # Performing a new assessment.  The URL describes the information in
+  # the assessment.selection_strategies.DocumentPairPresentation
+  url(r'^assessor/assignment/(?P<assignment_id>\d+)/' + \
+                       '(?P<left_doc>\d+)(?P<left_fixed>\+?)/' + \
+                       '(?P<right_doc>\d+)(?P<right_fixed>\+?)/$',
+    'new_assessment', name='new_assessment'),
+
   # Assessment viewing
   url(r'^assessor/assessment/(?P<assessment_id>\d+)/$',
     'assessment_detail', name='assessment_detail'),

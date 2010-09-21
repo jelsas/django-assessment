@@ -172,18 +172,36 @@ def assignment_detail(request, assignment_id):
 
 @login_required
 def next_assessment(request, assignment_id):
+  '''This view is responsible for getting the next document to assess.  It
+  doesn't actually save anything'''
   assignment = get_object_or_404(Assignment, pk=assignment_id)
   if assignment.assessor != request.user:
     return render_to_response('assessment/access_error.html',
       {'message': 'Sorry, you don\'t have permission to view this assignment'},
       RequestContext(request))
 
+  docpair = strategy.next_pair(assignment)
+  # if no docpairs, we must be done
+  if docpair is None:
+    return HttpResponseRedirect(reverse('assignment_detail',
+                                args=[assignment.id]))
+  # redirect to the new_assessment view now that we have all the docpair info
+  return HttpResponseRedirect(reverse('new_assessment',
+                              args = (assignment.id,) + docpair.to_args()))
+
+@login_required
+def new_assessment(request, assignment_id,
+                   left_doc, left_fixed, right_doc, right_fixed):
+  assignment = get_object_or_404(Assignment, pk=assignment_id)
+  left_doc = get_object_or_404(AssessedDocument, pk=left_doc)
+  right_doc = get_object_or_404(AssessedDocument, pk=right_doc)
+
   if request.method == 'POST':
     form = PreferenceAssessmentForm(request.POST)
     #reason_form = pref_assessment_form_factory.create(request.POST)
     if form.is_valid(): # and reason_form.is_valid():
       # create a new AssessedDocumentRelation
-      rel = form.to_assessment()
+      rel = form.to_assessment(left_doc, right_doc)
       try:
         rel.save()
       except IntegrityError:
@@ -193,12 +211,12 @@ def next_assessment(request, assignment_id):
           source_doc = rel.source_doc, target_doc = rel.target_doc)
         existing_assessment.relation_type = rel.relation_type
         existing_assessment.save()
+      # go to the next one
+      return HttpResponseRedirect(reverse('next_assessment',
+                                  args=(assignment_id,)))
 
-  docpair = strategy.next_pair(assignment)
-  # if no docpairs, we must be done
-  if docpair is None:
-    return HttpResponseRedirect(reverse('assignment_detail',
-                                args=[assignment.id]))
+  docpair = DocumentPairPresentation(left_doc, right_doc,
+                                    left_fixed == '+', right_fixed == '+')
 
   # TODO: make these options configurable in settings.py?
   #submit_options = [('Submit', '_save')]

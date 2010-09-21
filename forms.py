@@ -47,16 +47,11 @@ class PreferenceAssessmentForm(forms.Form):
                  ('RB', 'Right Bad') ),
      label = 'Which document do you prefer?',
      widget = forms.RadioSelect( renderer = CustomRadioRenderer ) )
-  # the left and right docs refer to the AssessedDocuments (not Documents)
-  left_doc = forms.CharField( widget = forms.HiddenInput )
-  right_doc = forms.CharField( widget = forms.HiddenInput )
 
   @classmethod
   def from_assessment(cls, assessment):
     '''Creates a PreferenceAssessmentForm from an AssessedDocumentRelation'''
     if assessment.source_presented_left:
-      left_doc = assessment.source_doc.id
-      right_doc = assessment.target_doc.id
       if assessment.relation_type == 'P':
         preference = 'L'
       elif assessment.relation_type == 'D':
@@ -64,24 +59,17 @@ class PreferenceAssessmentForm(forms.Form):
       elif assessment.relation_type == 'B':
         preference = 'LB'
     else:
-      left_doc = assessment.target_doc.id
-      right_doc = assessment.source_doc.id
       if assessment.relation_type == 'P':
         preference = 'R'
       elif assessment.relation_type == 'D':
         preference = 'D'
       elif assessment.relation_type == 'B':
         preference = 'RB'
+    return cls( {'preference':preference} )
 
-    return cls( {'preference':preference,
-                 'left_doc':left_doc,
-                 'right_doc':right_doc } )
-
-  def to_assessment(self):
+  def to_assessment(self, left_doc, right_doc):
     '''Converts this form to an UNSAVED assessment object.'''
     preference = self.cleaned_data['preference']
-    left_doc = AssessedDocument.objects.get(pk=self.cleaned_data['left_doc'])
-    right_doc = AssessedDocument.objects.get(pk=self.cleaned_data['right_doc'])
     if preference == 'LB':
       return AssessedDocumentRelation( source_doc = left_doc,
                                       target_doc = right_doc,

@@ -5,6 +5,7 @@ class DocumentPairPresentation(object):
   '''Deals with which document is presented on the left/right and which
   document is fixed in place from the last presentation.'''
   def __init__(self, left_doc, right_doc, left_fixed, right_fixed):
+    # the docs tuple contains AssessedDocument objects
     self.docs = (left_doc, right_doc)
     self.fixed = (left_fixed, right_fixed)
 
@@ -35,6 +36,16 @@ class DocumentPairPresentation(object):
       left_doc = assessment.target_doc
       right_doc = assessment.source_doc
     return cls(left_doc, right_doc, False, False)
+
+  def to_args(self):
+    '''returns a tuple of (left_doc, left_fixed, right_doc, right_fixed) for
+    use with the new_assessment view'''
+    if self.fixed[0]: lf = '+'
+    else: lf = ''
+    if self.fixed[1]: rf = '+'
+    else: rf = ''
+
+    return (self.docs[0].id, lf, self.docs[1].id, rf)
 
 class Strategy(object):
   '''A simple strategy that just returns random pairs of documents with
