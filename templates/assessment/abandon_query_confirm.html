@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Are you sure you would like to abandon this query?</h1>
+<h2>Query: {{ assignment.query }}</h2>
+You wil not be able to complete the assessment for this query.
+
+<p><a href="{% url next_assessment assignment.id %}">No thanks.</a></p>
+<form action="." method="post">
+<input type="submit" value="Yes!" />
+</form>
+{% endblock %}
+

@@ -83,7 +83,7 @@ def assessor_dashboard(request):
 
   # Make lists of complete & in-progress assignments
   complete_assignments, pending_assignments = [], []
-  for a in assignments:
+  for a in assignments.filter(abandoned=False):
     n_pending = strategy.pending_assessments(a)
     if n_pending == 0:
       complete_assignments.append(a)
@@ -93,7 +93,7 @@ def assessor_dashboard(request):
 
 
   # Grab a random query to offer
-  assigned_query_ids = assignments.values_list('id', flat=True)
+  assigned_query_ids = assignments.values_list('query__id', flat=True)
   try:
     available_query = \
       Query.objects.exclude(id__in=assigned_query_ids)\
@@ -146,10 +146,11 @@ def select_query_confirm(request, query_id):
     try:
       assignment.save()
     except IntegrityError:
-      # must be already assigned to this query, so bail here & go to the
-      # assignment detail page
-      return HttpResponseRedirect(reverse('assignment_detail',
-                                  args=[assignment.id]))
+      # must be already assigned to this query, so start assessing
+      assignment = Assignment.objects.get(assessor = request.user,
+                            query = query)
+      return HttpResponseRedirect(reverse('next_assessment',
+                                args=[assignment.id]))
     # decrement our remaining_assignments field
     query.remaining_assignments -= 1
     query.save()
@@ -159,11 +160,31 @@ def select_query_confirm(request, query_id):
       assessed_doc = AssessedDocument(assignment=assignment,
                                       document=doc)
       assessed_doc.save()
-    return HttpResponseRedirect(reverse('assignment_detail',
+    return HttpResponseRedirect(reverse('next_assessment',
                                 args=[assignment.id]))
   else:
     return render_to_response('assessment/select_query_confirm.html',
                               {'query': query}, RequestContext(request))
+
+@login_required
+def abandon_query_confirm(request, assignment_id):
+  '''Handles confirmation of abandoning a query assignment.'''
+  a = get_object_or_404(Assignment, pk=assignment_id)
+
+  if request.method == 'POST':
+    # mark abandoned
+    a.abandoned = True
+    a.save()
+
+    # increment the remaining_assignments field
+    query = a.query
+    query.remaining_assignments += 1
+    query.save()
+
+    return HttpResponseRedirect(reverse('assessor_dashboard'))
+  else:
+    return render_to_response('assessment/abandon_query_confirm.html',
+                              {'assignment': a}, RequestContext(request))
 
 @login_required
 def assignment_detail(request, assignment_id):

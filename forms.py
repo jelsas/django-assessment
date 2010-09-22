@@ -4,6 +4,7 @@ from django.utils.encoding import force_unicode
 from assessment.models import *
 from assessment import app_settings
 from registration.forms import RegistrationFormUniqueEmail
+from assessment.multi_submit_button import MultipleSubmitButton
 
 class CustomRadioRenderer(forms.widgets.RadioFieldRenderer):
   # see http://skyl.org/log/post/skyl/2010/01/subclass-django-forms-widgets-radiofieldrenderer-and-django-forms-widgets-radioselect-for-custom-rendering-of-individual-choices/
@@ -46,7 +47,7 @@ class PreferenceAssessmentForm(forms.Form):
                  ('R', 'Right Preferred'),
                  ('RB', 'Right Bad') ),
      label = 'Which document do you prefer?',
-     widget = forms.RadioSelect( renderer = CustomRadioRenderer ) )
+     widget = MultipleSubmitButton(attrs={'class':'choicebutton'}) )
 
   @classmethod
   def from_assessment(cls, assessment):

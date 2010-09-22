@@ -5,7 +5,12 @@ from django.core.mail import mail_admins
 from django.db.models import Count
 from datetime import datetime
 from assessment import app_settings
-from assessment.util import flatten
+
+def _flatten(listOfLists):
+  "Flatten one level of nesting"
+  from itertools import chain
+  # from http://docs.python.org/library/itertools.html
+  return chain.from_iterable(listOfLists)
 
 class Query(models.Model):
   '''A Query'''
@@ -36,6 +41,9 @@ class Assignment(models.Model):
   # created for this assignment.
   description = models.TextField(blank=True)
   narrative = models.TextField(blank=True)
+
+  # flag indicating this query assignment has been abandoned
+  abandoned = models.BooleanField(default=False)
 
   class Meta:
     # make sure an assessor doesn't get assigned to the same query twice
@@ -116,7 +124,7 @@ class Assignment(models.Model):
 
   def unassessed_documents(self):
     '''Documents that have not been judged at all'''
-    assessed_docs = set(flatten( \
+    assessed_docs = set(_flatten( \
         self.assessments().values_list('source_doc', 'target_doc')))
     return self.documents.exclude(id__in = assessed_docs)
 

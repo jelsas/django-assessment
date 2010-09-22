@@ -23,6 +23,10 @@ urlpatterns = patterns('assessment.views',
   url(r'^assessor/selectquery/(?P<query_id>\d+)/$', 'select_query_confirm',
     name='select_query_confirm'),
 
+  # Abandoning query assignment
+  url(r'^assessor/abandonquery/(?P<assignment_id>\d+)/$',
+    'abandon_query_confirm', name='abandon_query_confirm'),
+
   # Assignment viewing
   url(r'^assessor/assignment/(?P<assignment_id>\d+)/$', 'assignment_detail',
     name='assignment_detail'),
@@ -50,5 +54,5 @@ urlpatterns = patterns('assessment.views',
   url(r'^assessor/comment/$', 'comment', name='comment'),
 
   # all other URLs go to the dashboard
-  (r'.*', 'redirect_to_pagename', {'pagename': 'dashboard'}),
+  (r'.*', 'redirect_to_pagename', {'pagename': 'assessor_dashboard'}),
 )

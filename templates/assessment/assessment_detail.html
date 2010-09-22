@@ -38,6 +38,7 @@ window.onresize = resizeFrames;
 </script>
 
 <h1>Assessment for [{{assignment.query.text}}]</h1>
+
 {% if assignment.description|length > 0 %}
 <div class="note">
 <p><strong>Information need statement</strong>:
@@ -57,9 +58,6 @@ window.onresize = resizeFrames;
 {{ reason_form.as_p }}
 </div>
 {% endif %}
-{% for value, name in submit_options %}
-<input type="submit" value="{{ value }}" name="{{ name }}"/>
-{% endfor %}
 </form>
 
 <table class="info">
@@ -95,5 +93,8 @@ Right Document ({{ docpair.right_doc }})</a>
 </td></tr>
 </table>
 
+<div class="note">
+<a href="{% url abandon_query_confirm assignment.id %}">Abandon this query</a>
+</div>
 {% endblock %}
 

@@ -1,13 +1,6 @@
-from django.db.models import Sum
 from django.core.cache import cache
-from assessment.models import *
+from assessment.models import Query, Document
 from functools import wraps
-from itertools import chain
-
-def flatten(listOfLists):
-  "Flatten one level of nesting"
-  # from http://docs.python.org/library/itertools.html
-  return chain.from_iterable(listOfLists)
 
 def my_cache(func, timeout_secs = 30):
   '''A decorator for caching of function output.  Only works with zero
@@ -31,28 +24,6 @@ def parse_queries_file(file, message_callback = None):
     if len(splits) != 2:
       continue
     yield Query(qid = splits[0], text = splits[1])
-
-# def parse_docpairs_file(file, message_callback = None):
-#   '''A generator over (unsaved) QueryDocumentPair objects.  Expect lines to
-#   be in the format: <qid>:<left doc>:<right doc>'''
-#   missing_queries = set()
-#   for line in file:
-#     splits = line.strip().split(':')
-#     if len(splits) != 3:
-#       continue
-#     (qid, left_doc, right_doc) = splits
-#     if qid in missing_queries:
-#       continue
-#     try:
-#       q = Query.objects.get(qid=qid)
-#     except Query.DoesNotExist:
-#       missing_queries.add(qid)
-#       if message_callback:
-#         message_callback('Query "%s" in Doc Pairs File does not exist' % qid)
-#       continue
-#
-#     yield QueryDocumentPair(query = q, left_doc = left_doc,
-#                             right_doc = right_doc)
 
 def parse_docscores_file(file, message_callback = None):
   '''A generator over (unsaved) QueryDocumentPair objects.  Expect lines to

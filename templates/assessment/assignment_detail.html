@@ -8,10 +8,12 @@
 
 <h1>Details for query [{{assignment.query.text}}] assigned to {{assignment.assessor}}.</h1>
 
+{% if assignment.description|length > 0 %}
 <h2>Information Need Statement</h2>
 <p>{{assignment.description}}</p>
 <p>{{assignment.narrative}}</p>
 <p><a href="{% url information_need assignment.id %}?next={% url assignment_detail assignment.id %}">Update</a>
+{% endif %}
 
 {% with assignment.num_assessments_complete as complete %}
 {% if pending_assessments > 0 %}
@@ -35,5 +37,6 @@
 {% endif %}
 {% endwith %}
 
+<a href="{% url abandon_query_confirm assignment.id %}">Abandon this query</a>
 {% endblock %}
 
