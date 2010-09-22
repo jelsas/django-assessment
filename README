@@ -29,15 +29,19 @@ DOCSERVER_URL_PATTERN - A URL with a single string format placeholder (%s)
                         placeholder will be replced by the document ID.
                         Required.
 
-RANDOMIZE_DOC_PRESENTATION - A boolean indicating whether to randomize the
-                        presentation of left/right documents in the
-                        document-pairs.  Defaults to True.  Optional.
+ASSESSMENTS_PER_QUERY - The maximum number of document pairs to assess per
+                        query.
 
 REGISTRATION_KEY - A string specifying a code that must be entered in the
                         registration form.  For use only when using
                         django-registration with the ValidKeyRegistrationForm.
                         Optional.  See below.
 
+MAX_ASSESSMENTS_PER_DOC - The maximum number of times one document will be 
+                        presented in any pair.
+
+COLLECT_INFORMATION_NEED - Boolean indicating whether information need 
+                        statements should be collected.
 
 Restricting Registrations
 =========================
