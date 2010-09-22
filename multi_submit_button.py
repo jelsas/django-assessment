@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# see http://djangosnippets.org/snippets/951/
+# This code stolen from http://djangosnippets.org/snippets/951/
 from django import forms
 from django.utils.safestring import mark_safe
 from django.utils.encoding import force_unicode
