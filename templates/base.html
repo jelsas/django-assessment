@@ -42,7 +42,7 @@
         {% if user and user.is_authenticated %}
         <div class="navelement"><strong>{{ user }}</strong></div>
         {% block current_navelement %}{% endblock %}
-        <div class="navelement"><a href="{% url dashboard %}">
+        <div class="navelement"><a href="{% url assessor_dashboard %}">
           Assessor Dashboard</a></div>
         {% if user.is_superuser %}
         <div class="navelement"><a href="{% url admin_dashboard %}">Admin Dashboard</a></div>

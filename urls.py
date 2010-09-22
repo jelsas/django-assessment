@@ -7,7 +7,8 @@ admin.autodiscover()
 
 urlpatterns = patterns('assessment.views',
   # Viewing assessor's assigned and available queries
-  url(r'^assessor/dashboard/$', 'assessor_dashboard', name='dashboard'),
+  url(r'^assessor/dashboard/$', 'assessor_dashboard',
+                                name='assessor_dashboard'),
 
   # Viewing overall assessment progress
   url(r'^admin/dashboard/$', 'admin_dashboard', name='admin_dashboard'),

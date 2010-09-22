@@ -193,8 +193,7 @@ def next_assessment(request, assignment_id):
   docpair = strategy.next_pair(assignment)
   # if no docpairs, we must be done
   if docpair is None:
-    return HttpResponseRedirect(reverse('assignment_detail',
-                                args=[assignment.id]))
+    return HttpResponseRedirect(reverse('assessor_dashboard'))
   # redirect to the new_assessment view now that we have all the docpair info
   return HttpResponseRedirect(reverse('new_assessment',
                               args = (assignment.id,) + docpair.to_args()))
