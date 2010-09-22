@@ -38,12 +38,14 @@ window.onresize = resizeFrames;
 </script>
 
 <h1>Assessment for [{{assignment.query.text}}]</h1>
+{% if assignment.description|length > 0 %}
 <div class="note">
 <p><strong>Information need statement</strong>:
 (<a href="{% url information_need assignment.id %}?next={{ request.path }}">update</a>)</p>
 <p>{{ assignment.description }}</p>
 <p>{{ assignment.narrative }}</p>
 </div>
+{% endif %}
 
 <form action="." method="post">
 <div class="inline">

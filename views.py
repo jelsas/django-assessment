@@ -102,7 +102,6 @@ def assessor_dashboard(request):
     # no available queries for this assessor
     available_query = None
 
-  # comment form
   comment_form = CommentForm()
 
   data = { 'complete_assignments': complete_assignments,
@@ -194,21 +193,32 @@ def next_assessment(request, assignment_id):
   # if no docpairs, we must be done
   if docpair is None:
     return HttpResponseRedirect(reverse('assessor_dashboard'))
-  # redirect to the new_assessment view now that we have all the docpair info
-  return HttpResponseRedirect(reverse('new_assessment',
-                              args = (assignment.id,) + docpair.to_args()))
+
+  new_assessment_url = reverse('new_assessment',
+                              args = (assignment.id,) + docpair.to_args())
+  # If we're collecting information need statements, make sure we do this before
+  # collecting any assessments
+  if app_settings.COLLECT_INFORMATION_NEED and len(assignment.description) == 0:
+    return HttpResponseRedirect(reverse('information_need',
+                    args = (assignment.id,)) + '?next=' + new_assessment_url)
+  return HttpResponseRedirect(new_assessment_url)
 
 @login_required
 def new_assessment(request, assignment_id,
                    left_doc, left_fixed, right_doc, right_fixed):
   assignment = get_object_or_404(Assignment, pk=assignment_id)
+
+  # first make sure we have the information need filled
+  if app_settings.COLLECT_INFORMATION_NEED and len(assignment.description) == 0:
+    return HttpResponseRedirect(reverse('information_need',
+                    args = (assignment_id,)) + '?next=' + request.path)
+
   left_doc = get_object_or_404(AssessedDocument, pk=left_doc)
   right_doc = get_object_or_404(AssessedDocument, pk=right_doc)
 
   if request.method == 'POST':
     form = PreferenceAssessmentForm(request.POST)
-    #reason_form = pref_assessment_form_factory.create(request.POST)
-    if form.is_valid(): # and reason_form.is_valid():
+    if form.is_valid():
       # create a new AssessedDocumentRelation
       rel = form.to_assessment(left_doc, right_doc)
       try:
@@ -227,13 +237,7 @@ def new_assessment(request, assignment_id,
   docpair = DocumentPairPresentation(left_doc, right_doc,
                                     left_fixed == '+', right_fixed == '+')
 
-  # TODO: make these options configurable in settings.py?
-  #submit_options = [('Submit', '_save')]
   submit_options = [('Submit & Continue', '_continue')]
-  #if assignment.num_assessments_pending() > 1:
-  #  submit_options.append( ('Submit & Continue', '_continue') )
-  #elif assignment.num_assessments_pending() == 1:
-  #  submit_options.append( ('Submit & Return to Dashboard', '_complete') )
 
   return render_to_response('assessment/assessment_detail.html',
     {'assignment': assignment,
@@ -241,7 +245,6 @@ def new_assessment(request, assignment_id,
       'form': PreferenceAssessmentForm(
                       initial={'left_doc':docpair.docs[0].id,
                                'right_doc':docpair.docs[1].id}),
-      #'reason_form': pref_assessment_form_factory.create(),
       'pending_assessments':strategy.pending_assessments(assignment),
       'submit_options': submit_options},
     RequestContext(request))
@@ -257,8 +260,7 @@ def assessment_detail(request, assessment_id):
 
   if request.method == 'POST':
     form = PreferenceAssessmentForm(request.POST)
-    #reason_form = pref_assessment_form_factory.create(request.POST)
-    if form.is_valid():# and reason_form.is_valid():
+    if form.is_valid():
       new_assessment = form.to_assessment()
       if assessment.source_doc != new_assessment.source_doc or \
           assessment.target_doc != new_assessment.target_doc:
@@ -279,27 +281,8 @@ def assessment_detail(request, assessment_id):
                                     args=[assessment.assignment().id]))
 
       assessment.relation_type = new_assessment.relation_type
-      #assessment.reasons = new_assessment.reasons
       assessment.source_presented_left = new_assessment.source_presented_left
-      #assessment.preference_reason_other = reason_form.cleaned_data['other']
       assessment.save()
-
-
-      # update the checked reasons
-      #existing_assessment_reasons = assessment.reasons
-      #existing_ids = set( r.reason.id for r in \
-      #                    existing_assessment_reasons.all() )
-      #new_reasons = reason_form.checked_reasons()
-      #new_ids = set( r.id for r in new_reasons )
-      # delete existing reasons that aren't checked any more
-      #for r in existing_assessment_reasons.exclude(reason__id__in=new_ids):
-      #  r.delete()
-      # add new ones that aren't in the existing reasons
-      #for r in new_reasons.exclude(id__in=existing_ids):
-      #  assessment_reason = PreferenceAssessmentReason(
-      #    assessment = assessment,
-      #    reason = r)
-      #  assessment_reason.save()
 
       if '_continue' in request.POST:
         return HttpResponseRedirect(reverse('next_assessment',
@@ -307,19 +290,12 @@ def assessment_detail(request, assessment_id):
       elif '_save' in request.POST:
         return HttpResponseRedirect(reverse('next_assessment',
                                             args=[assessment.assignment().id]))
-        #return HttpResponseRedirect(reverse('assessment_detail',
-        #                                    args=[assessment.id]))
 
   form = PreferenceAssessmentForm.from_assessment(assessment)
-  #reason_form = pref_assessment_form_factory.create_from_assessment(assessment)
-
   submit_options = [('Submit', '_save')]
-  #if assessment.assignment().num_assessments_pending() > 0:
-  #  submit_options.append( ('Submit & Assess More', '_continue') )
 
   return render_to_response('assessment/assessment_detail.html',
     {'form': form,
-      #'reason_form': reason_form,
       'docpair': DocumentPairPresentation.from_assessment(assessment),
       'assessment': assessment,
       'assignment': assessment.assignment(),

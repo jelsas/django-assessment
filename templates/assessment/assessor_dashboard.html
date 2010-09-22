@@ -19,7 +19,7 @@
     <tr>
     <td> [{{ a.assignment.query.text }}] </td>
     <td> {{ a.assignment.created_date }} </td>
-    <td> <a href="{% url assignment_detail a.assignment.id %}">
+    <td> <a href="{% url next_assessment a.assignment.id %}">
     {{ a.pending_assessments }}
       pending assessment{{ a.pending_assessments|pluralize }}
     </a> </td>
