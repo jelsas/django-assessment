@@ -11,7 +11,7 @@ from django.shortcuts import render_to_response, \
                              get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.template import RequestContext
-from random import randint
+from random import randint, uniform
 from util import parse_queries_file, parse_docscores_file
 
 pref_assessment_form_factory = PreferenceAssessmentReasonFormFactory()
@@ -49,6 +49,7 @@ def upload_data(request):
         query_count = 0
         for query in parse_queries_file(request.FILES['queries_file']):
           try:
+            query.remaining_assignments = form.cleaned_data['assignments']
             query.save()
           except IntegrityError:
             continue
@@ -58,6 +59,9 @@ def upload_data(request):
         doc_count = 0
         for doc in parse_docscores_file(
               request.FILES['document_pairs_file'], messages.append):
+          if form.cleaned_data['randomize_document_presentation']:
+            # assign a random number to the score
+            doc.score = uniform(0, 1)
           try:
             doc.save()
           except IntegrityError:
