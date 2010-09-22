@@ -4,10 +4,9 @@
 
 <h1>Welcome {{ user }}</h1>
 
-{% if assignments|length > 0 or queries|length > 0 %}
-{% if assignments|length > 0 %}
-  <h2>Current Assignments:</h2>
-  <table class="info">
+{% if pending_assignments|length > 0 %}
+  <h2>Incomplete Assignments: </h2>
+    <table class="info">
   <thead>
     <tr>
       <th>Query</th>
@@ -16,45 +15,45 @@
     </tr>
   </thead>
   <tbody>
-  {% for a in assignments %}
+  {% for a in pending_assignments %}
     <tr>
     <td> [{{ a.assignment.query.text }}] </td>
     <td> {{ a.assignment.created_date }} </td>
     <td> <a href="{% url assignment_detail a.assignment.id %}">
-    {% with a.assignment.num_assessments_complete as complete %}
-      {{complete}} assessment{{ complete|pluralize }} complete,
-    {% endwith %}
-    {{ a.pending_assessments }} assessment{{ a.pending_assessments|pluralize }} pending
+    {{ a.pending_assessments }}
+      pending assessment{{ a.pending_assessments|pluralize }}
     </a> </td>
     </tr>
   {% endfor %}
   </tbody>
   </table>
-{% else %}
-  {% if available_queries|length > 0 %}
-  <h2>No assignments yet.  Please select a new query below.</h2>
-  {% else %}
-  <h2>No queries in system.  Please contact the administrator</h2>
-  {% endif %}
 {% endif %}
 
-{% if available_queries|length > 0 %}
-<h2>Available Assignments:</h2>
-<table class="info">
-<thead>
-  <tr><th>Query</th></tr>
-</thead>
-<tbody>
-{% for q in available_queries.all %}
-  <tr>
-  <td><a href="{% url select_query_confirm q.id %}">[{{ q.text }}]</a></td>
-  </tr>
-{% endfor %}
-</tbody>
-</table>
+{% if available_query %}
+<h2>Assess a new query?</h2>
+<form action="{% url select_query_confirm available_query.id %}" method="post">
+<input class="bigbutton" type="submit" value="Yes!" />
+</form>
 {% endif %}
-{% else %}
-<h1>No queries in the system yet!</h1>
+
+{% if complete_assignments|length > 0 %}
+<h2>Complete Assignments:</h2>
+    <table class="info">
+  <thead>
+    <tr>
+      <th>Query</th>
+      <th>Assigned On</th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for a in complete_assignments %}
+    <tr>
+    <td><a href="{% url assignment_detail a.id %}">[{{ a.query.text }}]</a></td>
+    <td> {{ a.created_date }} </td>
+    </tr>
+  {% endfor %}
+  </tbody>
+  </table>
 {% endif %}
 
 <h2>Comments?</h2>

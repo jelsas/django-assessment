@@ -81,23 +81,33 @@ def download_data(request):
 def assessor_dashboard(request):
   assignments = request.user.assignments.all()
 
-  # need queries not assigned to this user that have pending assignments.
-  # We'll find a random set of 5.
+  # Make lists of complete & in-progress assignments
+  complete_assignments, pending_assignments = [], []
+  for a in assignments:
+    n_pending = strategy.pending_assessments(a)
+    if n_pending == 0:
+      complete_assignments.append(a)
+    else:
+      pending_assignments.append( {'assignment':a,
+                                   'pending_assessments':n_pending} )
+
+
+  # Grab a random query to offer
   assigned_query_ids = assignments.values_list('id', flat=True)
-  available_queries = \
-    Query.objects.exclude(id__in=assigned_query_ids)\
-      .filter(remaining_assignments__gt=0).order_by('?')[:5]
+  try:
+    available_query = \
+      Query.objects.exclude(id__in=assigned_query_ids)\
+        .filter(remaining_assignments__gt=0).order_by('?')[0]
+  except IndexError:
+    # no available queries for this assessor
+    available_query = None
 
   # comment form
   comment_form = CommentForm()
 
-  # calculate the data that's shown with the assignments.
-  assignments_dicts = [ \
-    {'assignment':a, 'pending_assessments':strategy.pending_assessments(a) } \
-    for a in assignments ]
-
-  data = { 'assignments': assignments_dicts,
-           'available_queries': available_queries,
+  data = { 'complete_assignments': complete_assignments,
+           'pending_assignments': pending_assignments,
+           'available_query': available_query,
            'comment_form': comment_form}
 
   return render_to_response('assessment/assessor_dashboard.html', data,
