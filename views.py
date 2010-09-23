@@ -60,7 +60,7 @@ def upload_data(request):
       if 'document_scores_file' in request.FILES:
         doc_count = 0
         for doc in parse_docscores_file(
-              request.FILES['document_pairs_file'], messages.append):
+              request.FILES['document_scores_file'], messages.append):
           if form.cleaned_data['randomize_document_presentation']:
             # assign a random number to the score
             doc.score = uniform(0, 1)
