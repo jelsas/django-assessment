@@ -34,6 +34,8 @@
 <form action="{% url select_query_confirm available_query.id %}" method="post">
 <input class="bigbutton" type="submit" value="Yes!" />
 </form>
+{% else %}
+<h2>No queries are available for assessment.</h2>
 {% endif %}
 
 {% if complete_assignments|length > 0 %}
