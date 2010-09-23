@@ -44,7 +44,7 @@ def upload_data(request):
   if request.method == 'POST':
     form = DataUploadForm(request.POST, request.FILES)
     if form.is_valid():
-      # handle the queries form
+      # handle queries
       if 'queries_file' in request.FILES:
         query_count = 0
         for query in parse_queries_file(request.FILES['queries_file']):
@@ -55,7 +55,9 @@ def upload_data(request):
             continue
           query_count += 1
         messages.append('Uploaded %d queries' % query_count)
-      if 'document_pairs_file' in request.FILES:
+
+      # handle documents
+      if 'document_scores_file' in request.FILES:
         doc_count = 0
         for doc in parse_docscores_file(
               request.FILES['document_pairs_file'], messages.append):
@@ -68,6 +70,7 @@ def upload_data(request):
             continue
           doc_count += 1
         messages.append('Uploaded %d docs' % doc_count)
+
   else:
     form = DataUploadForm()
   return render_to_response('assessment/upload_data.html',

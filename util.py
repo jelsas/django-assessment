@@ -45,5 +45,3 @@ def parse_docscores_file(file, message_callback = None):
       continue
 
     yield Document(query = q, document = doc, score = float(score))
-
-

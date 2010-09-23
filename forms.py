@@ -37,7 +37,7 @@ class InformationNeedForm(forms.ModelForm):
 
 class DataUploadForm(forms.Form):
   queries_file = forms.FileField(required=False)
-  document_pairs_file = forms.FileField(required=False)
+  document_scores_file = forms.FileField(required=False)
   assignments = forms.IntegerField(required=False, initial=1)
   randomize_document_presentation = forms.BooleanField(required=False,
                                                         initial=False)
