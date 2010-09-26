@@ -21,6 +21,12 @@ class DocumentPairPresentation(object):
   def right_doc(self):
     return self.docs[1].document.document
 
+  def times_left_assessed(self):
+    return self.docs[0].n_times_assessed()
+
+  def times_right_assessed(self):
+    return self.docs[1].n_times_assessed()
+
   def left_doc_url(self):
     return app_settings.DOCSERVER_URL_PATTERN % self.left_doc()
 

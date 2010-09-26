@@ -65,12 +65,14 @@ window.onresize = resizeFrames;
 <th class="halfwidth{% if docpair.left_fixed %} fixed{% endif %}">
 <div>
 <a href="javascript:swapFrame('leftframe', '{{ docpair.left_doc_url }}');">
+( {{ docpair.times_left_assessed }} )
 Left Document ({{ docpair.left_doc }})</a>
 </div>
 </th>
 <th class="halfwidth{% if docpair.right_fixed %} fixed{% endif %}">
 <div>
 <a href="javascript:swapFrame('rightframe', '{{ docpair.right_doc_url }}');">
+( {{ docpair.times_right_assessed }} )
 Right Document ({{ docpair.right_doc }})</a>
 </div>
 </th>
