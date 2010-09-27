@@ -45,3 +45,15 @@ def parse_docscores_file(file, message_callback = None):
       continue
 
     yield Document(query = q, document = doc, score = float(score))
+
+def add_users(username_pattern='user%d', password_pattern=None, count=100):
+  '''adds users programmatically, with username=password, following the
+  pattern'''
+  from django.contrib.auth.models import User
+  if password_pattern is None:
+    password_pattern = username_pattern
+
+  for i in xrange(count):
+    u = User( username = username_pattern % i )
+    u.set_password( password_pattern % i )
+    u.save()
