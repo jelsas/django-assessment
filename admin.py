@@ -14,8 +14,7 @@ admin.site.register(Query,
   short_description = "Queries and Documents")
 
 admin.site.register(AssessedDocumentRelation,
-  list_display = ('source_doc', 'target_doc', 'created_date', 'relation_type'),
-  inlines = [PreferenceAssessmentReasonInline],
+  list_display = ('__unicode__', 'created_date'),
   list_filter = ['created_date'])
 
 admin.site.register(Assignment,

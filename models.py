@@ -218,6 +218,18 @@ class AssessedDocumentRelation(models.Model):
   def assignment(self):
     return self.source_doc.assignment
 
+  def assessor(self):
+    return self.assignment().assessor
+
+  def source_docname(self):
+    return self.source_doc.document.document
+
+  def target_docname(self):
+    return self.target_doc.document.document
+
+  def query(self):
+    return self.assignment().query
+
   def save(self):
     '''Custom save method that handles automatically filling in the date'''
     if not self.id:

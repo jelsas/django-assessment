@@ -81,7 +81,7 @@ def upload_data(request):
 @user_passes_test(lambda user: user.is_superuser)
 def download_data(request):
   return render_to_response('assessment/data_download.txt',
-                            {'data': PreferenceAssessment.objects.all()},
+                            {'data': AssessedDocumentRelation.objects.all()},
                             RequestContext(request), mimetype='text/csv')
 
 @login_required
