@@ -1,6 +1,11 @@
 from assessment.models import Assignment
 from assessment import app_settings
 
+def _choose_2(n):
+  from math import factorial
+  if n < 2: return 0
+  else: return factorial(n) / (2*factorial(n-2))
+
 class DocumentPairPresentation(object):
   '''Deals with which document is presented on the left/right and which
   document is fixed in place from the last presentation.'''
@@ -67,10 +72,19 @@ class Strategy(object):
 
   def pending_assessments(self, assignment):
     assessments_done = assignment.num_assessments_complete()
-    n_docs = assignment.available_documents().count()
-    max_for_this_assignment = min((n_docs * (n_docs - 1))/2, \
-                                  self.max_assessments_per_query)
-    return max(max_for_this_assignment - assessments_done, 0)
+    if assessments_done >= self.max_assessments_per_query:
+      return 0
+    n_docs = assignment.documents.count()
+    n_bad_dups = len(assignment.bad_documents() | assignment.dup_documents())
+    # preference assessments only (not bad or dup judgements):
+    prefs_done = assessments_done - n_bad_dups
+    # total pref assessments given the number of bads & dups
+    prefs_possible = _choose_2(n_docs - n_bad_dups)
+    max_remaining_assessments = prefs_possible - prefs_done
+    if max_remaining_assessments > 0:
+      return min(max_remaining_assessments, self.max_assessments_per_query)
+    else:
+      return 0
 
   def doc_slots(self, assignment):
     if assignment.relation_type == 'B':

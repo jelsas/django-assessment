@@ -100,17 +100,23 @@ class Assignment(models.Model):
     assessments = AssessedDocumentRelation.objects.filter(source_doc__in=docs)
     return assessments
 
+  def bad_documents(self):
+    '''returns a set of bad document ids'''
+    return set( \
+      self.assessments().filter(relation_type = 'B').values_list('source_doc', \
+                                                          flat=True))
+  def dup_documents(self):
+    '''returns a set of bad document ids'''
+    return set( \
+      self.assessments().filter(relation_type = 'D').values_list('target_doc', \
+                                                          flat=True))
+
   def available_documents(self):
     '''All documents that haven't been judged as bad, or as a duplicate, and
     also haven't been judged more than MAX_ASSESSMENTS_PER_DOC times.'''
     assessments = self.assessments()
-    bad_documents = set( \
-      assessments.filter(relation_type = 'B').values_list('source_doc', \
-                                                          flat=True))
-    dup_documents = set( \
-      assessments.filter(relation_type = 'D').values_list('target_doc', \
-                                                          flat=True))
-    docs = self.documents.exclude( id__in = bad_documents | dup_documents )
+    docs = self.documents.exclude( id__in = self.bad_documents() | \
+                                            self.dup_documents() )
     if app_settings.MAX_ASSESSMENTS_PER_DOC > 0:
       docs = docs.annotate(src_count=Count('as_source'), \
                           tar_count=Count('as_target'))
