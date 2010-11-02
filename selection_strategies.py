@@ -2,9 +2,7 @@ from assessment.models import Assignment
 from assessment import app_settings
 
 def _choose_2(n):
-  from math import factorial
-  if n < 2: return 0
-  else: return factorial(n) / (2*factorial(n-2))
+  return 0 if n < 2 else n * (n-1) / 2
 
 class DocumentPairPresentation(object):
   '''Deals with which document is presented on the left/right and which
