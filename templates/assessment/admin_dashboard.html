@@ -4,37 +4,25 @@
 
 <h1>Welcome {{ user }} -- Admin Dashboard</h1>
 
-<h2>Assessment Status:</h2>
+<h2>Queries:</h2>
 <table>
-<tr><th>Assignments in-progress or complete:</th><td></td></tr>
-{% for a in current_assignments %}
-{% with a.complete|add:a.pending as total %}
+<tr><th>Query</th>
+    <th>Remaining Assignments</th>
+    <th>Assessor</th>
+    <th>Assigned On</th>
+    <th>Complete</th></tr>
+{% for q in queries|dictsort:'remaining_assignments' %}
 <tr>
-  <td><strong>{{ a.query|truncatewords:7 }}</strong>
-        assigned to {{ a.assessor }}
-        on {{ a.created_date }}</td>
-  <td>
-    {% if total > 0 %}
-      <img src="/site_media/00ff00.gif" height="20px"
-            width="{% widthratio a.complete total 500 %}px"
-            border="0"
-            style="border-width: 0px; border-style: none;"/>
-      <img src="/site_media/0000ff.gif" height="20px"
-            width="{% widthratio a.pending total 500 %}px"
-            border="0"
-            style="border-width: 0px; border-style: none;"/>
-     {% endif %}
-      {{ a.complete }} / {{ total }}<br/></td>
+<td><strong>{{ q.query|truncatewords:7 }}</strong></td>
+  <td>{{ q.remaining_assignments }}</td>
 </tr>
-{% endwith %}
+
+{% for a in q.assignments %}
+<tr><td></td><td></td>
+  <td>{{ a.assessor }}</td>
+  <td><a href="{% url assignment_detail a.id %}">{{ a.created_date }}</a></td>
+  <td>{{ a.complete }} / {{ a.complete|add:a.pending }}</td></tr>
 {% endfor %}
-<tr><th>Assignments pending:</th><td></td></tr>
-{% for q in pending_assignments %}
-<tr><td><strong>{{ q|truncatewords:7 }}</strong></td>
-<td><img src="/site_media/ff0000.gif" height="20px"
-        width="500px" border="0"
-        style="border-width: 0px; border-style: none;"/>
-    {{ q.remaining_assignments }}</td></tr>
 {% endfor %}
 </table>
 

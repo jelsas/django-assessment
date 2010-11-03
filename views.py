@@ -23,19 +23,22 @@ def redirect_to_pagename(request, pagename):
 @login_required
 @user_passes_test(lambda user: user.is_superuser)
 def admin_dashboard(request):
-  # calc some info for all the current & pending assignments
-  current_assignments = [ \
-    {'query': a.query, \
-     'assessor': a.assessor, \
-     'created_date': a.created_date, \
-     'complete': a.num_assessments_complete(), \
-     'pending': strategy.pending_assessments(a)} \
-    for a in Assignment.objects.order_by('-created_date') ]
-  pending_assignments = Query.objects.filter(remaining_assignments__gt = 0)
+  # group data by query
+  queries = []
+  for q in Query.objects.all():
+    q_data = { 'query': q, \
+               'remaining_assignments': q.remaining_assignments, \
+               'assignments': [] }
+    for a in q.assignments.all():
+      q_data['assignments'].append( { \
+          'assessor': a.assessor, \
+          'id': a.id, \
+          'created_date': a.created_date, \
+          'complete': a.num_assessments_complete(), \
+          'pending': strategy.pending_assessments(a) } )
+    queries.append(q_data)
   return render_to_response('assessment/admin_dashboard.html', \
-        { 'pending_assignments': pending_assignments, \
-          'current_assignments': current_assignments }, \
-        RequestContext(request))
+        { 'queries': queries}, RequestContext(request))
 
 @login_required
 @user_passes_test(lambda user: user.is_superuser)
