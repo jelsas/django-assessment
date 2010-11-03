@@ -77,12 +77,10 @@ class Strategy(object):
     # preference assessments only (not bad or dup judgements):
     prefs_done = assessments_done - n_bad_dups
     # total pref assessments given the number of bads & dups
-    prefs_possible = _choose_2(n_docs - n_bad_dups)
+    prefs_possible = min(self.max_assessments_per_query - n_bad_dups, \
+                         _choose_2(n_docs - n_bad_dups))
     max_remaining_assessments = prefs_possible - prefs_done
-    if max_remaining_assessments > 0:
-      return min(max_remaining_assessments, self.max_assessments_per_query)
-    else:
-      return 0
+    return max(max_remaining_assessments, 0)
 
   def doc_slots(self, assignment):
     if assignment.relation_type == 'B':
