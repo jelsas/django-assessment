@@ -42,10 +42,13 @@ class MultipleSubmitButton(forms.Select):
   def render(self, name, value, attrs=None, choices=()):
     """Outputs a <ul> for this set of submit buttons."""
     self.name = name
-    return mark_safe(u'<ul>\n%s\n</ul>' % u'\n'.join(
-      [u'<li id="%s">%s</li>' % ('container-%s' % w.value, force_unicode(w))\
-              for w in self],
-      ))
+    def format_button(w):
+      if w.value == value:
+        # add 'selected' class
+        w.attrs['class'] = w.attrs.get('class', '') + ' selected'
+      return u'<li id="container-%s">%s</li>' % (w.value, force_unicode(w))
+    list_items = [format_button(w) for w in self]
+    return mark_safe(u'<ul>\n%s\n</ul>' % u'\n'.join(list_items))
   def value_from_datadict(self, data, files, name):
     """
     returns the value of the widget: IE posts inner HTML of the button

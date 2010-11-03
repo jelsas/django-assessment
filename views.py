@@ -284,15 +284,21 @@ def new_assessment(request, assignment_id,
 def assessment_detail(request, assessment_id):
   '''To handle updating a previously entered assessment'''
   assessment = get_object_or_404(AssessedDocumentRelation, pk=assessment_id)
-  if assessment.assignment().assessor != request.user:
+  is_assigned_user = assessment.assignment().assessor == request.user
+  if not ( is_assigned_user or request.user.is_superuser ):
     return render_to_response('assessment/access_error.html',
       {'message': 'Sorry, you don\'t have permission to view this assessment'},
       RequestContext(request))
 
-  if request.method == 'POST':
+  if request.method == 'POST' and is_assigned_user:
     form = PreferenceAssessmentForm(request.POST)
     if form.is_valid():
-      new_assessment = form.to_assessment()
+      left_doc = assessment.source_doc if assessment.source_presented_left \
+                                       else assessment.target_doc
+      right_doc = assessment.target_doc if assessment.source_presented_left \
+                                        else assessment.source_doc
+
+      new_assessment = form.to_assessment(left_doc, right_doc)
       if assessment.source_doc != new_assessment.source_doc or \
           assessment.target_doc != new_assessment.target_doc:
         # someone was monkeying with the form (or the ID in the URL) and the
@@ -323,15 +329,15 @@ def assessment_detail(request, assessment_id):
                                             args=[assessment.assignment().id]))
 
   form = PreferenceAssessmentForm.from_assessment(assessment)
-  submit_options = [('Submit', '_save')]
+  if not is_assigned_user:
+    form.fields['preference'].widget.attrs['disabled'] = 'true'
 
   return render_to_response('assessment/assessment_detail.html',
     {'form': form,
       'docpair': DocumentPairPresentation.from_assessment(assessment),
       'assessment': assessment,
       'assignment': assessment.assignment(),
-      'pending_assessments':strategy.pending_assessments(assessment.assignment()),
-      'submit_options': submit_options},
+      'pending_assessments':strategy.pending_assessments(assessment.assignment())},
     RequestContext(request))
 
 @login_required
