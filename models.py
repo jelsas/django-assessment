@@ -246,6 +246,11 @@ class AssessedDocumentRelation(models.Model):
   def get_absolute_url(self):
     return ('assessment_detail', [str(self.id)])
 
+  def relation_type_as_permalink(self):
+    return '<a href="%s">%s</a>' % (self.get_absolute_url(), \
+                                    self.get_relation_type_display())
+  relation_type_as_permalink.allow_tags = True
+
   class Meta:
     unique_together = ('source_doc', 'target_doc')
 
