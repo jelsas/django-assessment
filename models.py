@@ -242,6 +242,10 @@ class AssessedDocumentRelation(models.Model):
       self.created_date = datetime.now()
     super(AssessedDocumentRelation, self).save()
 
+  @models.permalink
+  def get_absolute_url(self):
+    return ('assessment_detail', [str(self.id)])
+
   class Meta:
     unique_together = ('source_doc', 'target_doc')
 
