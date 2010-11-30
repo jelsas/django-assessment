@@ -18,7 +18,8 @@ class AssessedDocumentRelationAdmin(admin.ModelAdmin):
                   'source_docname', 'target_docname',
                   'relation_type_as_permalink')
   list_filter = ('source_doc__assignment__query',
-                 'source_doc__assignment__assessor',)
+                 'source_doc__assignment__assessor',
+                 'relation_type',)
 admin.site.register(AssessedDocumentRelation, AssessedDocumentRelationAdmin)
 
 admin.site.register(Assignment,

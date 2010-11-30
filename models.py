@@ -250,6 +250,7 @@ class AssessedDocumentRelation(models.Model):
     return '<a href="%s">%s</a>' % (self.get_absolute_url(), \
                                     self.get_relation_type_display())
   relation_type_as_permalink.allow_tags = True
+  relation_type_as_permalink.short_description = 'Relation type'
 
   class Meta:
     unique_together = ('source_doc', 'target_doc')
