@@ -9,6 +9,9 @@ collection.
 Dependencies
 ============
 
+Requires the latest development of Django (as of 11.30.2010) for some admin
+feature support.
+
 This app depends on users being authenticated through Django's user
 authentication system.  This can be accomplished in several ways.  For
 examples on how to setup your server to handle this, see the Django

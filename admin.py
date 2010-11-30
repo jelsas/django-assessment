@@ -13,9 +13,13 @@ admin.site.register(Query,
   inlines = [DocInline],
   short_description = "Queries and Documents")
 
-admin.site.register(AssessedDocumentRelation,
-  list_display = ('__unicode__', 'created_date'),
-  list_filter = ['created_date'])
+class AssessedDocumentRelationAdmin(admin.ModelAdmin):
+  list_display = ('query', 'assessor',
+                  'source_docname', 'target_docname',
+                  'relation_type')
+  list_filter = ('source_doc__assignment__query',
+                 'source_doc__assignment__assessor',)
+admin.site.register(AssessedDocumentRelation, AssessedDocumentRelationAdmin)
 
 admin.site.register(Assignment,
   list_display = ('assessor', 'query', 'created_date',
