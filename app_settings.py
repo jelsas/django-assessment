@@ -20,3 +20,6 @@ COLLECT_PREFERENCE_REASON = getattr(settings, 'COLLECT_PREFERENCE_REASON',
 # should we collect an information need statement?
 COLLECT_INFORMATION_NEED = getattr(settings, 'COLLECT_INFORMATION_NEED',
                                    True)
+
+# Do we assume judgements are transitivie?
+ASSUME_TRANSITIVITY = getattr(settings, 'ASSUME_TRANSITIVITY', False)

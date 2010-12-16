@@ -70,9 +70,13 @@ class Assignment(models.Model):
   def get_absolute_url(self):
     return ('assignment_detail', [str(self.id)])
 
-  def num_assessments_complete(self):
+  def num_assessments_complete(self, assume_transitivity = False):
     '''The number of assessments complete for this assignment.'''
-    return self.assessments().count()
+    if assume_transitivity:
+      g = self.assessment_graph()
+      return len(g.all_path_lengths())
+    else:
+      return self.assessments().count()
 
   def latest_assessment(self):
     '''The most recent assessment, or None if no assessments have been
@@ -99,6 +103,21 @@ class Assignment(models.Model):
     docs = self.documents.values('id')
     assessments = AssessedDocumentRelation.objects.filter(source_doc__in=docs)
     return assessments
+
+  def assessment_graph(self):
+    '''Returns a joepy.graph.Graph version of the document assessments, with the
+    (internal) document ID as the vertex labels.  Bad documents are not added
+    to the graph, and Duplicates relations are added both directions with a zero
+    weight.  Preferences are added with a weight of 1.0'''
+    from joepy.graph import Graph
+    g = Graph()
+    for a in self.assessments():
+      if a.relation_type == 'D':
+        g.add_edge(a.source_doc.id, a.target_doc.id, 0)
+        g.add_edge(a.target_doc.id, a.source_doc.id, 0)
+      elif a.relation_type == 'P':
+        g.add_edge(a.source_doc.id, a.target_doc.id, 1)
+    return g
 
   def bad_documents(self):
     '''returns a set of bad document ids'''
@@ -191,12 +210,24 @@ class AssessedDocument(models.Model):
     return set(self.as_source.values_list('target_doc', flat=True)) | \
             set(self.as_target.values_list('source_doc', flat=True))
 
-  def available_pairs(self):
+  def transitively_judged_with(self):
+    '''All documents transitively preferred (or unpreferred) to this one'''
+    g = self.assignment.assessment_graph()
+    reachable = g.reachable_from(self.id)
+    g.reverse()
+    reachable = reachable | g.reachable_from(self.id)
+    return reachable
+
+  def available_pairs(self, assume_transitivity = False):
     '''The other documents that aren't bad or duplicates that this document
     can be judged with'''
     available = self.assignment.available_documents() # excludes bad & dups
     available = available.exclude(id = self.id) # exclude self
-    available = available.exclude(id__in = self.judged_with()) # exclude jud. w/
+    if assume_transitivity:
+      judged_with = self.transitively_judged_with()
+    else:
+      judged_with = self.judged_with()
+    available = available.exclude(id__in = judged_with) # exclude jud. w/
     return available
 
   class Meta:
