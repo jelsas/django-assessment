@@ -71,9 +71,13 @@ class Strategy(object):
     return self.pending_assessments(assignment) <= 0
 
   def pending_assessments(self, assignment):
+    if assignment.complete: return 0
     assessments_done = \
                 assignment.num_assessments_complete(self.assume_transitivity)
     if assessments_done >= self.max_assessments_per_query:
+      # this assignment should be marked complete
+      assignemnt.complete = True
+      assignment.save()
       return 0
     n_docs = assignment.documents.count()
     n_bad_dups = len(assignment.bad_documents() | assignment.dup_documents())
@@ -121,6 +125,11 @@ class BubbleSortStrategy(Strategy):
     else:
       keep_doc = latest_assessment.source_doc
       keep_left = latest_assessment.source_presented_left
+
+    if app_settings.MAX_ASSESSMENTS_PER_DOC > 0 and \
+        keep_doc.n_times_assessed() >= app_settings.MAX_ASSESSMENTS_PER_DOC:
+      # just grab the next 2 docs for assessment
+      return self.new_pair(assignment, order_by='-document__score')
 
     # find the next document in the pair.  First, favor documents that haven't
     # been judged at all, then favor docs. that haven't been judged with the

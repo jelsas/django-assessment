@@ -45,6 +45,10 @@ class Assignment(models.Model):
   # flag indicating this query assignment has been abandoned
   abandoned = models.BooleanField(default=False)
 
+  # flag indicating whether the assignment is complete, to avoid re-calculating
+  # this again & again
+  complete = models.BooleanField(default=False)
+
   class Meta:
     # make sure an assessor doesn't get assigned to the same query twice
     unique_together = ('assessor', 'query')

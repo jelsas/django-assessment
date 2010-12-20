@@ -224,6 +224,8 @@ def next_assessment(request, assignment_id):
   docpair = strategy.next_pair(assignment)
   # if no docpairs, we must be done
   if docpair is None:
+    assignment.complete = True
+    assignment.save()
     return HttpResponseRedirect(reverse('assessor_dashboard'))
 
   new_assessment_url = reverse('new_assessment',
