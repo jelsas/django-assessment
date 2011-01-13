@@ -37,7 +37,9 @@ window.onresize = resizeFrames;
 
 </script>
 
-<h1>Assessment for [{{assignment.query.text}}]</h1>
+<h1>Assessment for [{{assignment.query.text}}]
+{% if assignment.assessor != user %} by {{ assignment.assessor }}{% endif %}
+</h1>
 
 {% if assignment.description|length > 0 %}
 <div class="note">
