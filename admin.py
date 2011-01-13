@@ -17,9 +17,10 @@ class AssessedDocumentRelationAdmin(admin.ModelAdmin):
   list_display = ('query', 'assessor',
                   'source_docname', 'target_docname',
                   'relation_type_as_permalink')
-  list_filter = ('source_doc__assignment__query',
-                 'source_doc__assignment__assessor',
-                 'relation_type',)
+  # TODO: enable this stuff when django 1.3 is available
+  #list_filter = ('source_doc__assignment__query',
+  #               'source_doc__assignment__assessor',
+  #               'relation_type',)
 admin.site.register(AssessedDocumentRelation, AssessedDocumentRelationAdmin)
 
 admin.site.register(Assignment,

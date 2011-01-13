@@ -59,6 +59,8 @@ class DocumentPairPresentation(object):
 class Strategy(object):
   '''A simple strategy that just returns random pairs of documents with
   no regard for the assignment history.'''
+  assume_transitivity = False
+
   def __init__(self, max_assessments_per_query):
     self.max_assessments_per_query = max_assessments_per_query
 
@@ -69,8 +71,13 @@ class Strategy(object):
     return self.pending_assessments(assignment) <= 0
 
   def pending_assessments(self, assignment):
-    assessments_done = assignment.num_assessments_complete()
+    if assignment.complete: return 0
+    assessments_done = \
+                assignment.num_assessments_complete(self.assume_transitivity)
     if assessments_done >= self.max_assessments_per_query:
+      # this assignment should be marked complete
+      assignemnt.complete = True
+      assignment.save()
       return 0
     n_docs = assignment.documents.count()
     n_bad_dups = len(assignment.bad_documents() | assignment.dup_documents())
@@ -78,7 +85,7 @@ class Strategy(object):
     prefs_done = assessments_done - n_bad_dups
     # total pref assessments given the number of bads & dups
     prefs_possible = min(self.max_assessments_per_query - n_bad_dups, \
-                         _choose_2(n_docs - n_bad_dups))
+                          _choose_2(n_docs - n_bad_dups))
     max_remaining_assessments = prefs_possible - prefs_done
     return max(max_remaining_assessments, 0)
 
@@ -100,6 +107,7 @@ class Strategy(object):
     return DocumentPairPresentation(docs[0], docs[1], False, False)
 
 class BubbleSortStrategy(Strategy):
+
   '''A strategy that performs a Bubble Sort type selection, with the goal of
   exposing the assessor to the whole document set as soon as possible, finding
   the 'best' document in a single pass, and keeping one document in the pair
@@ -118,6 +126,11 @@ class BubbleSortStrategy(Strategy):
       keep_doc = latest_assessment.source_doc
       keep_left = latest_assessment.source_presented_left
 
+    if app_settings.MAX_ASSESSMENTS_PER_DOC > 0 and \
+        keep_doc.n_times_assessed() >= app_settings.MAX_ASSESSMENTS_PER_DOC:
+      # just grab the next 2 docs for assessment
+      return self.new_pair(assignment, order_by='-document__score')
+
     # find the next document in the pair.  First, favor documents that haven't
     # been judged at all, then favor docs. that haven't been judged with the
     # keep_doc
@@ -125,7 +138,7 @@ class BubbleSortStrategy(Strategy):
     if other_docs.exists():
       other_doc = other_docs.order_by('-document__score')[0]
     else:
-      other_docs = keep_doc.available_pairs()
+      other_docs = keep_doc.available_pairs(self.assume_transitivity)
       if other_docs.exists():
         other_doc = other_docs.order_by('-document__score')[0]
       else:
@@ -140,7 +153,7 @@ class BubbleSortStrategy(Strategy):
       # there weren't any available other documents with this one, so pick
       # anther doc
       for doc in assignment.available_documents().order_by('-document__score'):
-        candidate_pairs = doc.available_pairs()
+        candidate_pairs = doc.available_pairs(self.assume_transitivity)
         if candidate_pairs.count() > 0:
           return DocumentPairPresentation( \
             candidate_pairs.order_by('-document__score')[0], doc, False, False )

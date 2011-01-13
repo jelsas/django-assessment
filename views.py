@@ -16,6 +16,7 @@ from util import parse_queries_file, parse_docscores_file
 
 pref_assessment_form_factory = PreferenceAssessmentReasonFormFactory()
 strategy = BubbleSortStrategy(app_settings.ASSESSMENTS_PER_QUERY)
+strategy.assume_transitivity = app_settings.ASSUME_TRANSITIVITY
 
 def redirect_to_pagename(request, pagename):
   return HttpResponseRedirect(reverse(pagename))
@@ -223,6 +224,8 @@ def next_assessment(request, assignment_id):
   docpair = strategy.next_pair(assignment)
   # if no docpairs, we must be done
   if docpair is None:
+    assignment.complete = True
+    assignment.save()
     return HttpResponseRedirect(reverse('assessor_dashboard'))
 
   new_assessment_url = reverse('new_assessment',
