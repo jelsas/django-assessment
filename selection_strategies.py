@@ -103,8 +103,15 @@ class Strategy(object):
 
   def new_pair(self, assignment, order_by = '?'):
     '''Gets a pair of documents, using the ordering relation specified.'''
-    docs = assignment.available_documents().order_by(order_by)[0:2]
-    return DocumentPairPresentation(docs[0], docs[1], False, False)
+    availble_docs = assignment.available_documents().order_by(order_by)
+    for next_doc in available_docs:
+      # find a pair that hasn't been judged yet
+      availble_others = next_doc.available_pairs(self.assume_transitivity)
+      if available_others.exists():
+        return DocumentPairPresentation(next_doc, availble_others[0],
+                                        False, False)
+    # we haven't found any suitable new pair, so we may be done
+    return None
 
 class BubbleSortStrategy(Strategy):
 
@@ -150,12 +157,6 @@ class BubbleSortStrategy(Strategy):
       else:
         return DocumentPairPresentation(other_doc, keep_doc, False, True)
     else:
-      # there weren't any available other documents with this one, so pick
-      # anther doc
-      for doc in assignment.available_documents().order_by('-document__score'):
-        candidate_pairs = doc.available_pairs(self.assume_transitivity)
-        if candidate_pairs.count() > 0:
-          return DocumentPairPresentation( \
-            candidate_pairs.order_by('-document__score')[0], doc, False, False )
-    # couldn't find anything, so maybe we're done
-    return None
+      # there weren't any available other documents with this one, so do
+      # a new pair
+      return self.new_pair(assignment, order_by='-document__score')
