@@ -105,7 +105,6 @@ class Strategy(object):
     '''Gets a pair of documents, using the ordering relation specified.'''
     availble_docs = assignment.available_documents().order_by(order_by)
     for next_doc in available_docs:
-      # find a pair that hasn't been judged yet
       availble_others = next_doc.available_pairs(self.assume_transitivity)
       if available_others.exists():
         return DocumentPairPresentation(next_doc, availble_others[0],
