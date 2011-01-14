@@ -103,11 +103,11 @@ class Strategy(object):
 
   def new_pair(self, assignment, order_by = '?'):
     '''Gets a pair of documents, using the ordering relation specified.'''
-    availble_docs = assignment.available_documents().order_by(order_by)
+    available_docs = assignment.available_documents().order_by(order_by)
     for next_doc in available_docs:
-      availble_others = next_doc.available_pairs(self.assume_transitivity)
+      available_others = next_doc.available_pairs(self.assume_transitivity)
       if available_others.exists():
-        return DocumentPairPresentation(next_doc, availble_others[0],
+        return DocumentPairPresentation(next_doc, available_others[0],
                                         False, False)
     # we haven't found any suitable new pair, so we may be done
     return None
