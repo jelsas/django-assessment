@@ -76,7 +76,7 @@ class Strategy(object):
                 assignment.num_assessments_complete(self.assume_transitivity)
     if assessments_done >= self.max_assessments_per_query:
       # this assignment should be marked complete
-      assignemnt.complete = True
+      assignment.complete = True
       assignment.save()
       return 0
     n_docs = assignment.documents.count()
